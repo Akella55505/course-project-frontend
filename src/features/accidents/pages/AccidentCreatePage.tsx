@@ -41,7 +41,7 @@ export function AccidentCreatePage(): ReactElement {
 	});
 
 	const onSubmit = (data: AccidentFormData): void => {
-		createAccidentMutation.mutate(data as Omit<Accident, "id">, {
+		createAccidentMutation.mutate(data as unknown as Omit<Accident, "id">, {
 			onSuccess: () => { reset(); },
 		});
 	};
