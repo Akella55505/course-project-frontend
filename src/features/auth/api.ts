@@ -2,7 +2,6 @@ import type { UseMutationResult } from "@tanstack/react-query";
 // eslint-disable-next-line no-duplicate-imports
 import { useMutation } from "@tanstack/react-query";
 import apiClient  from '../../lib/axios';
-import { useAuthStore } from '../../store/auth';
 import { useNavigate } from "@tanstack/react-router";
 
 type LoginInput = {
@@ -25,9 +24,7 @@ export const useLogin = (): UseMutationResult<LoginResponse, Error, LoginInput, 
 
 	return useMutation({
 		mutationFn: login,
-		onSuccess: async (data) => {
-			localStorage.setItem("Token", data.data);
-			useAuthStore.getState().setToken(data.data);
+		onSuccess: async () => {
 			await navigate({ to: "/accidents" });
 		},
 	});

@@ -1,5 +1,4 @@
 import axios, { isAxiosError } from "axios";
-import { useAuthStore } from '../store/auth';
 
 const apiClient = axios.create({
 	baseURL: String(import.meta.env["VITE_API_BASE_URL"]),
@@ -9,8 +8,6 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-	const token = useAuthStore.getState().token;
-	if (token) config.headers.Authorization = `${token}`;
 	return config;
 });
 
@@ -21,8 +18,7 @@ apiClient.interceptors.response.use(
 			console.error(`API error ${error.name}: ${error.message}`);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			if (error.response?.status === 401 || error.response?.data.errorMessage === 'Authorization header not provided') {
-				const { clearToken } = useAuthStore.getState();
-				clearToken();
+				document.cookie = "Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 				window.location.href = '/login';
 			}
 			return Promise.reject(error);
@@ -30,5 +26,7 @@ apiClient.interceptors.response.use(
 		return;
 	}
 );
+
+apiClient.defaults.withCredentials = true;
 
 export default apiClient;

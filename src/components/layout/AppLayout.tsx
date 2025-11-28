@@ -1,6 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactElement} from "react";
-import { useAuthStore } from "../../store/auth.ts";
 
 export function AppLayout(): ReactElement {
 	const navigate = useNavigate();
@@ -28,7 +27,7 @@ export function AppLayout(): ReactElement {
 					<button
 						className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded cursor-pointer"
 						onClick={async () => {
-							useAuthStore.getState().clearToken();
+							document.cookie = "Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 							await navigate({ to: "/login" });
 						}}
 					>
