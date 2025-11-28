@@ -33,7 +33,7 @@ export function AppLayout(): ReactElement {
 							await navigate({ to: "/login" });
 						}}
 					>
-						Logout
+						Вийти
 					</button>
 				)}
 			</header>
