@@ -27,7 +27,6 @@ export function AppLayout(): ReactElement {
 					<button
 						className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded cursor-pointer"
 						onClick={async () => {
-							document.cookie = "Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 							await navigate({ to: "/login" });
 						}}
 					>

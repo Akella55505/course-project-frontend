@@ -18,7 +18,6 @@ apiClient.interceptors.response.use(
 			console.error(`API error ${error.name}: ${error.message}`);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			if (error.response?.status === 401 || error.response?.data.errorMessage === 'Authorization header not provided') {
-				document.cookie = "Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 				window.location.href = '/login';
 			}
 			return Promise.reject(error);
