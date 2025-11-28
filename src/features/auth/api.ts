@@ -1,4 +1,4 @@
-import { type UseMutationResult, useQueryClient, useMutation } from "@tanstack/react-query";
+import { type UseMutationResult, useMutation } from "@tanstack/react-query";
 import apiClient  from '../../lib/axios';
 import { useNavigate } from "@tanstack/react-router";
 
@@ -7,21 +7,30 @@ type LoginInput = {
 	password: string;
 };
 
-type LoginResponse = {
-	message: string;
-	data: string;
+const register = async (data: LoginInput): Promise<void> => {
+	await apiClient.post('/auth/register', data);
 };
 
-const login = async (data: LoginInput): Promise<LoginResponse> => {
-	const response = await apiClient.post('/auth/login', data);
-	return response.data as LoginResponse;
+const login = async (data: LoginInput): Promise<void> => {
+	await apiClient.post('/auth/login', data);
 };
 
 const logout = async (): Promise<void> => {
 	await apiClient.post('/auth/logout');
 };
 
-export const useLogin = (): UseMutationResult<LoginResponse, Error, LoginInput, unknown> => {
+export const useRegister = (): UseMutationResult<void, Error, LoginInput, unknown> => {
+	const navigate = useNavigate();
+
+	return useMutation({
+		mutationFn: register,
+		onSuccess: async () => {
+			await navigate({ to: "/login" });
+		},
+	});
+};
+
+export const useLogin = (): UseMutationResult<void, Error, LoginInput, unknown> => {
 	const navigate = useNavigate();
 
 	return useMutation({
@@ -33,12 +42,12 @@ export const useLogin = (): UseMutationResult<LoginResponse, Error, LoginInput, 
 };
 
 export const useLogout = (): UseMutationResult<void, Error> => {
-	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 
 	return useMutation({
 		mutationFn: logout,
 		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ['auth'] });
+			await navigate({ to: "/login" });
 		}
 	})
 }

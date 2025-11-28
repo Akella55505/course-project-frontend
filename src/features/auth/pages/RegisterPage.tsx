@@ -1,16 +1,17 @@
 import { useForm } from 'react-hook-form';
-import { useLogin } from '../api';
+import { useRegister } from '../api.ts';
 import type { ReactElement } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 type FormValues = {
+	username: string;
 	email: string;
 	password: string;
 };
 
-export function LoginPage(): ReactElement {
+export function RegisterPage(): ReactElement {
 	const { register, handleSubmit } = useForm<FormValues>();
-	const { mutate, isPending, error } = useLogin();
+	const { mutate, isPending, error } = useRegister();
 	const navigate = useNavigate();
 
 	const onSubmit = (data: FormValues): void => { mutate(data); };
@@ -21,15 +22,15 @@ export function LoginPage(): ReactElement {
 				<input {...register('email')} className="border p-2" placeholder="Email" />
 				<input {...register('password')} className="border p-2" placeholder="Password" type="password" />
 				<button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 cursor-pointer" disabled={isPending} type="submit">
-					{isPending ? 'Logging in...' : 'Login'}
+					{isPending ? 'Registering...' : 'Register'}
 				</button>
-				{error && <p className="text-red-500 text-sm">Login failed</p>}
+				{error && <p className="text-red-500 text-sm">Registration failed</p>}
 				<button
 					className="hover:cursor-pointer text-blue-700 underline underline-offset-4"
 					type="button"
-					onClick={() => navigate({ to: "/register" })}
+					onClick={() => navigate({ to: "/login" })}
 				>
-					Register
+					Login
 				</button>
 			</form>
 		</div>

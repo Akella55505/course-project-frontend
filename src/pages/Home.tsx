@@ -1,9 +1,13 @@
 import type { FunctionComponent } from "../common/types";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Home = (): FunctionComponent => {
-	return (
-		<div className="bg-gray-700 font-bold w-screen h-screen flex flex-col justify-center items-center">
-			<p className="text-white text-6xl">Sample text</p>
-		</div>
-	);
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		void navigate({ to: "/login" });
+	}, [navigate]);
+
+	return null;
 };

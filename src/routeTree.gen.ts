@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VehiclesRouteImport } from './routes/vehicles'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PersonsRouteImport } from './routes/persons'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AccidentsRouteImport } from './routes/accidents'
@@ -24,6 +25,11 @@ import { Route as AccidentsAccidentIdRouteImport } from './routes/accidents/$acc
 const VehiclesRoute = VehiclesRouteImport.update({
   id: '/vehicles',
   path: '/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PersonsRoute = PersonsRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/accidents': typeof AccidentsRouteWithChildren
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
+  '/register': typeof RegisterRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/$accidentId': typeof AccidentsAccidentIdRoute
   '/accidents/new': typeof AccidentsNewRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/accidents': typeof AccidentsRouteWithChildren
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
+  '/register': typeof RegisterRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/$accidentId': typeof AccidentsAccidentIdRoute
   '/accidents/new': typeof AccidentsNewRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/accidents': typeof AccidentsRouteWithChildren
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
+  '/register': typeof RegisterRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/$accidentId': typeof AccidentsAccidentIdRoute
   '/accidents/new': typeof AccidentsNewRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/accidents'
     | '/login'
     | '/persons'
+    | '/register'
     | '/vehicles'
     | '/accidents/$accidentId'
     | '/accidents/new'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/accidents'
     | '/login'
     | '/persons'
+    | '/register'
     | '/vehicles'
     | '/accidents/$accidentId'
     | '/accidents/new'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/accidents'
     | '/login'
     | '/persons'
+    | '/register'
     | '/vehicles'
     | '/accidents/$accidentId'
     | '/accidents/new'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AccidentsRoute: typeof AccidentsRouteWithChildren
   LoginRoute: typeof LoginRoute
   PersonsRoute: typeof PersonsRouteWithChildren
+  RegisterRoute: typeof RegisterRoute
   VehiclesRoute: typeof VehiclesRouteWithChildren
 }
 
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles'
       fullPath: '/vehicles'
       preLoaderRoute: typeof VehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/persons': {
@@ -295,6 +315,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccidentsRoute: AccidentsRouteWithChildren,
   LoginRoute: LoginRoute,
   PersonsRoute: PersonsRouteWithChildren,
+  RegisterRoute: RegisterRoute,
   VehiclesRoute: VehiclesRouteWithChildren,
 }
 export const routeTree = rootRouteImport

@@ -6,7 +6,7 @@ export function AppLayout(): ReactElement {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const logout = useLogout();
-	const isLoginPage = location.pathname === "/login";
+	const isLoginPage = location.pathname === "/login" || location.pathname === "/register";
 
 	return (
 		<div>
