@@ -20,7 +20,6 @@ import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles/$vehicl
 import { Route as PersonsNewRouteImport } from './routes/persons.new'
 import { Route as PersonsPersonIdRouteImport } from './routes/persons/$personId'
 import { Route as AccidentsNewRouteImport } from './routes/accidents.new'
-import { Route as AccidentsAccidentIdRouteImport } from './routes/accidents/$accidentId'
 
 const VehiclesRoute = VehiclesRouteImport.update({
   id: '/vehicles',
@@ -77,11 +76,6 @@ const AccidentsNewRoute = AccidentsNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AccidentsRoute,
 } as any)
-const AccidentsAccidentIdRoute = AccidentsAccidentIdRouteImport.update({
-  id: '/$accidentId',
-  path: '/$accidentId',
-  getParentRoute: () => AccidentsRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -90,7 +84,6 @@ export interface FileRoutesByFullPath {
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
   '/vehicles': typeof VehiclesRouteWithChildren
-  '/accidents/$accidentId': typeof AccidentsAccidentIdRoute
   '/accidents/new': typeof AccidentsNewRoute
   '/persons/$personId': typeof PersonsPersonIdRoute
   '/persons/new': typeof PersonsNewRoute
@@ -104,7 +97,6 @@ export interface FileRoutesByTo {
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
   '/vehicles': typeof VehiclesRouteWithChildren
-  '/accidents/$accidentId': typeof AccidentsAccidentIdRoute
   '/accidents/new': typeof AccidentsNewRoute
   '/persons/$personId': typeof PersonsPersonIdRoute
   '/persons/new': typeof PersonsNewRoute
@@ -119,7 +111,6 @@ export interface FileRoutesById {
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
   '/vehicles': typeof VehiclesRouteWithChildren
-  '/accidents/$accidentId': typeof AccidentsAccidentIdRoute
   '/accidents/new': typeof AccidentsNewRoute
   '/persons/$personId': typeof PersonsPersonIdRoute
   '/persons/new': typeof PersonsNewRoute
@@ -135,7 +126,6 @@ export interface FileRouteTypes {
     | '/persons'
     | '/register'
     | '/vehicles'
-    | '/accidents/$accidentId'
     | '/accidents/new'
     | '/persons/$personId'
     | '/persons/new'
@@ -149,7 +139,6 @@ export interface FileRouteTypes {
     | '/persons'
     | '/register'
     | '/vehicles'
-    | '/accidents/$accidentId'
     | '/accidents/new'
     | '/persons/$personId'
     | '/persons/new'
@@ -163,7 +152,6 @@ export interface FileRouteTypes {
     | '/persons'
     | '/register'
     | '/vehicles'
-    | '/accidents/$accidentId'
     | '/accidents/new'
     | '/persons/$personId'
     | '/persons/new'
@@ -259,23 +247,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccidentsNewRouteImport
       parentRoute: typeof AccidentsRoute
     }
-    '/accidents/$accidentId': {
-      id: '/accidents/$accidentId'
-      path: '/$accidentId'
-      fullPath: '/accidents/$accidentId'
-      preLoaderRoute: typeof AccidentsAccidentIdRouteImport
-      parentRoute: typeof AccidentsRoute
-    }
   }
 }
 
 interface AccidentsRouteChildren {
-  AccidentsAccidentIdRoute: typeof AccidentsAccidentIdRoute
   AccidentsNewRoute: typeof AccidentsNewRoute
 }
 
 const AccidentsRouteChildren: AccidentsRouteChildren = {
-  AccidentsAccidentIdRoute: AccidentsAccidentIdRoute,
   AccidentsNewRoute: AccidentsNewRoute,
 }
 

@@ -15,7 +15,7 @@ const login = async (data: LoginInput): Promise<void> => {
 	await apiClient.post('/auth/login', data);
 };
 
-const logout = async (): Promise<void> => {
+export const logout = async (): Promise<void> => {
 	await apiClient.post('/auth/logout');
 };
 

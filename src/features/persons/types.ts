@@ -1,18 +1,18 @@
-import type { NestedVehicle } from "../vehicles/types.ts";
-
 export type Person = {
-	id: string;
+	id: number;
 	name: string;
 	surname: string;
 	patronymic: string;
-	passportData: string;
-	driverLicense: string;
-	vehicles?: Array<NestedVehicle>;
+	passportDetails: PassportDetails;
+	driverLicense: DriverLicense;
 };
 
-export type NestedPerson = {
+type PassportDetails = {
 	id: string;
-	name: string;
-	surname: string;
-	patronymic: string;
-};
+	series: string;
+}
+
+type DriverLicense = {
+	id: string;
+	categories: Array<string>;
+}
