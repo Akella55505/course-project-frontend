@@ -1,9 +1,11 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactElement} from "react";
+import { useLogout } from "../../features/auth/api.ts";
 
 export function AppLayout(): ReactElement {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const logout = useLogout();
 	const isLoginPage = location.pathname === "/login";
 
 	return (
@@ -27,6 +29,7 @@ export function AppLayout(): ReactElement {
 					<button
 						className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded cursor-pointer"
 						onClick={async () => {
+							await logout.mutateAsync({});
 							await navigate({ to: "/login" });
 						}}
 					>

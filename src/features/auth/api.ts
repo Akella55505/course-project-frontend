@@ -1,6 +1,4 @@
-import type { UseMutationResult } from "@tanstack/react-query";
-// eslint-disable-next-line no-duplicate-imports
-import { useMutation } from "@tanstack/react-query";
+import { type UseMutationResult, useQueryClient, useMutation } from "@tanstack/react-query";
 import apiClient  from '../../lib/axios';
 import { useNavigate } from "@tanstack/react-router";
 
@@ -19,6 +17,10 @@ const login = async (data: LoginInput): Promise<LoginResponse> => {
 	return response.data as LoginResponse;
 };
 
+const logout = async (): Promise<void> => {
+	await apiClient.post('/auth/logout');
+};
+
 export const useLogin = (): UseMutationResult<LoginResponse, Error, LoginInput, unknown> => {
 	const navigate = useNavigate();
 
@@ -29,3 +31,14 @@ export const useLogin = (): UseMutationResult<LoginResponse, Error, LoginInput, 
 		},
 	});
 };
+
+export const useLogout = (): UseMutationResult<void, Error> => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: logout,
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ['auth'] });
+		}
+	})
+}
