@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useLogin } from '../api';
+import { useLogin } from "../api";
 import type { ReactElement } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -21,15 +21,15 @@ export function LoginPage(): ReactElement {
 				<input {...register('email')} className="border p-2" placeholder="Email" />
 				<input {...register('password')} className="border p-2" placeholder="Password" type="password" />
 				<button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 cursor-pointer" disabled={isPending} type="submit">
-					{isPending ? 'Logging in...' : 'Login'}
+					{isPending ? 'Зачекайте...' : 'Увійти'}
 				</button>
-				{error && <p className="text-red-500 text-sm">Login failed</p>}
+				{error && <p className="text-red-500 text-sm">Помилка</p>}
 				<button
 					className="hover:cursor-pointer text-blue-700 underline underline-offset-4"
 					type="button"
 					onClick={() => navigate({ to: "/register" })}
 				>
-					Register
+					Зареєструватися
 				</button>
 			</form>
 		</div>
