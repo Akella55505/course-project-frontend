@@ -7,12 +7,12 @@ export type Person = {
 	driverLicense: DriverLicense;
 };
 
-type PassportDetails = {
+export type PassportDetails = {
 	id: string;
 	series: string;
 }
 
-type DriverLicense = {
+export type DriverLicense = {
 	id: string;
 	categories: Array<string>;
 }

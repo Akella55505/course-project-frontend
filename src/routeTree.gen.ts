@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VehiclesRouteImport } from './routes/vehicles'
+import { Route as UserRouteImport } from './routes/user'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PersonsRouteImport } from './routes/persons'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,13 +18,18 @@ import { Route as AccidentsRouteImport } from './routes/accidents'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VehiclesNewRouteImport } from './routes/vehicles.new'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles/$vehicleId'
+import { Route as UserFormRouteImport } from './routes/user_.form'
 import { Route as PersonsNewRouteImport } from './routes/persons.new'
-import { Route as PersonsPersonIdRouteImport } from './routes/persons/$personId'
 import { Route as AccidentsNewRouteImport } from './routes/accidents.new'
 
 const VehiclesRoute = VehiclesRouteImport.update({
   id: '/vehicles',
   path: '/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserRoute = UserRouteImport.update({
+  id: '/user',
+  path: '/user',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -61,14 +67,14 @@ const VehiclesVehicleIdRoute = VehiclesVehicleIdRouteImport.update({
   path: '/$vehicleId',
   getParentRoute: () => VehiclesRoute,
 } as any)
+const UserFormRoute = UserFormRouteImport.update({
+  id: '/user_/form',
+  path: '/user/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PersonsNewRoute = PersonsNewRouteImport.update({
   id: '/new',
   path: '/new',
-  getParentRoute: () => PersonsRoute,
-} as any)
-const PersonsPersonIdRoute = PersonsPersonIdRouteImport.update({
-  id: '/$personId',
-  path: '/$personId',
   getParentRoute: () => PersonsRoute,
 } as any)
 const AccidentsNewRoute = AccidentsNewRouteImport.update({
@@ -83,10 +89,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
+  '/user': typeof UserRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/new': typeof AccidentsNewRoute
-  '/persons/$personId': typeof PersonsPersonIdRoute
   '/persons/new': typeof PersonsNewRoute
+  '/user/form': typeof UserFormRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
 }
@@ -96,10 +103,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
+  '/user': typeof UserRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/new': typeof AccidentsNewRoute
-  '/persons/$personId': typeof PersonsPersonIdRoute
   '/persons/new': typeof PersonsNewRoute
+  '/user/form': typeof UserFormRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
 }
@@ -110,10 +118,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
+  '/user': typeof UserRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/new': typeof AccidentsNewRoute
-  '/persons/$personId': typeof PersonsPersonIdRoute
   '/persons/new': typeof PersonsNewRoute
+  '/user_/form': typeof UserFormRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
 }
@@ -125,10 +134,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/persons'
     | '/register'
+    | '/user'
     | '/vehicles'
     | '/accidents/new'
-    | '/persons/$personId'
     | '/persons/new'
+    | '/user/form'
     | '/vehicles/$vehicleId'
     | '/vehicles/new'
   fileRoutesByTo: FileRoutesByTo
@@ -138,10 +148,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/persons'
     | '/register'
+    | '/user'
     | '/vehicles'
     | '/accidents/new'
-    | '/persons/$personId'
     | '/persons/new'
+    | '/user/form'
     | '/vehicles/$vehicleId'
     | '/vehicles/new'
   id:
@@ -151,10 +162,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/persons'
     | '/register'
+    | '/user'
     | '/vehicles'
     | '/accidents/new'
-    | '/persons/$personId'
     | '/persons/new'
+    | '/user_/form'
     | '/vehicles/$vehicleId'
     | '/vehicles/new'
   fileRoutesById: FileRoutesById
@@ -165,7 +177,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PersonsRoute: typeof PersonsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
+  UserRoute: typeof UserRoute
   VehiclesRoute: typeof VehiclesRouteWithChildren
+  UserFormRoute: typeof UserFormRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles'
       fullPath: '/vehicles'
       preLoaderRoute: typeof VehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user': {
+      id: '/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof UserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -226,18 +247,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicleIdRouteImport
       parentRoute: typeof VehiclesRoute
     }
+    '/user_/form': {
+      id: '/user_/form'
+      path: '/user/form'
+      fullPath: '/user/form'
+      preLoaderRoute: typeof UserFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/persons/new': {
       id: '/persons/new'
       path: '/new'
       fullPath: '/persons/new'
       preLoaderRoute: typeof PersonsNewRouteImport
-      parentRoute: typeof PersonsRoute
-    }
-    '/persons/$personId': {
-      id: '/persons/$personId'
-      path: '/$personId'
-      fullPath: '/persons/$personId'
-      preLoaderRoute: typeof PersonsPersonIdRouteImport
       parentRoute: typeof PersonsRoute
     }
     '/accidents/new': {
@@ -263,12 +284,10 @@ const AccidentsRouteWithChildren = AccidentsRoute._addFileChildren(
 )
 
 interface PersonsRouteChildren {
-  PersonsPersonIdRoute: typeof PersonsPersonIdRoute
   PersonsNewRoute: typeof PersonsNewRoute
 }
 
 const PersonsRouteChildren: PersonsRouteChildren = {
-  PersonsPersonIdRoute: PersonsPersonIdRoute,
   PersonsNewRoute: PersonsNewRoute,
 }
 
@@ -295,7 +314,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PersonsRoute: PersonsRouteWithChildren,
   RegisterRoute: RegisterRoute,
+  UserRoute: UserRoute,
   VehiclesRoute: VehiclesRouteWithChildren,
+  UserFormRoute: UserFormRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
