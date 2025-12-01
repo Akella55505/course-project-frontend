@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { useCreateAccident } from '../api';
 import type { ReactElement } from "react";
 import type { Accident} from "../types.ts";
-// eslint-disable-next-line no-duplicate-imports
 import { AssessmentStatus, ConsiderationStatus } from "../types.ts";
 
 const accidentSchema = z.object({

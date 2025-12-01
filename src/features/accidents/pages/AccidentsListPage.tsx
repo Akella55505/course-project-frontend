@@ -4,12 +4,104 @@ import { useState } from "react";
 import { loadingAnimation } from "../../../common/elements.tsx";
 import React from "react";
 import { AccidentRole } from "../../many-to-many/types.ts";
+import { z } from "zod";
+import { AssessmentStatus, ConsiderationStatus } from "../types.ts";
+import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
+
+const accidentSchema = z.object({
+	date: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Введіть дату в форматі РРРР-ММ-ДД").or(z.literal('')),
+	time: z.string().regex(new RegExp("^\\d{2}:\\d{2}$"), "Введіть час у форматі ГГ:ХХ").or(z.literal('')),
+	addressStreet: z.string().min(2, 'Назва вулиці занадто коротка').or(z.literal('')),
+	addressNumber: z.string().optional().or(z.number()),
+	name: z.string(),
+	surname: z.string(),
+	patronymic: z.string().min(3, 'По-батькові занадто коротке').or(z.literal(''))
+}).refine(
+	data => {
+		const filled = [data.name, data.surname, data.patronymic].filter(v => v !== '');
+		return filled.length === 0 || filled.length === 3;
+	},
+	{ message: "Введіть ПІБ повністю", path: ["name"]
+	});
 
 export function AccidentsListPage(): ReactElement {
-	const { data, isLoading, isError, error } = useAccidents({ pageIndex: 0 });
+	const [draft, setDraft] = useState({
+		date: '',
+		time: '',
+		addressStreet: '',
+		addressNumber: '',
+		name: '',
+		surname: '',
+		patronymic: ''
+	});
+	const [applied, setApplied] = useState({
+		date: undefined,
+		time: undefined,
+		addressStreet: undefined,
+		addressNumber: undefined,
+		name: undefined,
+		surname: undefined,
+		patronymic: undefined,
+		pageIndex: 0
+	});
+	const [errors, setErrors] = useState<Record<string, string>>({});
+	const { data, isLoading, isError, error } = useAccidents(applied);
 	const [expandedAccidents, setExpandedAccidents] = useState<Set<number>>(new Set());
 	const [expandedPersons, setExpandedPersons] = useState<Set<string>>(new Set());
 
+	const setDraftField = (field: string, value: string): void => {
+		if (value === '') setDraft(previous => ({ ...previous, [field]: undefined }));
+		setDraft(previous => ({ ...previous, [field]: value }));
+		}
+
+	const applyFilters = (): void =>
+		{
+			const prepared = {
+				date: draft.date,
+				time: draft.time,
+				addressStreet: draft.addressStreet,
+				addressNumber: draft.addressNumber === '' ? undefined : Number(draft.addressNumber),
+				name: draft.name,
+				surname: draft.surname,
+				patronymic: draft.patronymic
+			};
+
+			const result = accidentSchema.safeParse(prepared);
+
+			if (!result.success) {
+				const flat = result.error.flatten().fieldErrors;
+				const mapped = Object.fromEntries(
+					Object.entries(flat).map(([k, v]) => [k, v?.[0] ?? 'Invalid'])
+				);
+				setErrors(mapped);
+				return;
+			}
+
+			const cleaned = Object.entries(draft)
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			.filter(([_, v]) => v !== '' && v !== undefined)
+			.reduce((accumulator, [k, v]) => {
+				accumulator[k] = v;
+				return accumulator;
+			}, {} as Record<string, unknown>);
+
+			// eslint-disable-next-line @typescript-eslint/no-base-to-string,@typescript-eslint/restrict-plus-operands
+			if (cleaned["time"] !== undefined) cleaned["time"] = cleaned["time"] + ":00";
+
+			setErrors({});
+			// @ts-expect-error Always has the necessary properties
+			setApplied({
+				...cleaned,
+				pageIndex: 0
+			});
+		};
+
+	const nextPage = (): void =>
+		{ setApplied(previous => ({ ...previous, pageIndex: previous.pageIndex + 1 })); };
+
+	const previousPage = (): void =>
+		{ setApplied(previous => ({ ...previous, pageIndex: Math.max(0, previous.pageIndex - 1) })); };
+    
 	if (isLoading) return loadingAnimation();
 	if (isError) return <div className="flex items-center justify-center h-screen text-4xl font-bold">Error loading accidents: {error.message}</div>;
 
@@ -35,9 +127,15 @@ export function AccidentsListPage(): ReactElement {
 
 	const dataFetchError = (): ReactElement => {
 		return (
-			<h1 className="text-red-600">ERROR FETCHING DATA</h1>
+			<h1 className="text-red-600 text-2xl font-bold flex justify-center">ПОМИЛКА ПОШУКУ ДАНИХ</h1>
 		);
 	}
+
+	const formatDate = (date: string): string => {
+		const [year, month, day] = date.split("-");
+		// @ts-expect-error Always defined
+		return `${day}.${month}.${year.slice(-2)}`;
+	};
 
 	if (data === undefined) {
 		return dataFetchError();
@@ -58,152 +156,278 @@ export function AccidentsListPage(): ReactElement {
 		return dataFetchError();
 	}
 
-	const buttonClasses = "px-3 py-1 rounded shadow-sm bg-gray-200 hover:bg-gray-300 hover:scale-105 transition-transform duration-150 ease-in-out cursor-pointer";
-
 	return (
 		<div className="p-4">
 			<h1 className="text-2xl font-bold mb-4">ДТП</h1>
-			<table className="w-full table-auto border-collapse border border-gray-300">
-				<thead>
-				<tr className="bg-gray-100">
-					<th className="border px-2 py-1">Дата</th>
-					{accidents.some(a => a.type) && (
-						<th className="border px-2 py-1">Тип</th>
-					)}
-					<th className="border px-2 py-1">Адреса</th>
-					{accidents.some(a => a.causes) && (
-						<th className="border px-2 py-1">Причини</th>
-					)}
-					<th className="border px-2 py-1">Час</th>
-					<th className="border px-2 py-1">Персони</th>
-					{accidents.some(a => courtDecisions?.some(cd => cd.accidentId === a.id)) && (
-						<th className="border px-2 py-1">Судові рішення</th>
-					)}
+			<div className="grid grid-cols-4 gap-4 mb-4">
+				<div className="flex flex-col">
+					<input
+						className="border p-2 rounded"
+						type="date"
+						value={draft.date}
+						onChange={(event_) => {
+						setDraftField("date", event_.target.value);
+					}}
+				/>
+				<p className="text-red-600 text-sm h-2">{errors["date"]}</p>
+				</div>
+				<div className="flex flex-col">
+					<input
+						className="border p-2 rounded"
+						type="time"
+						value={draft.time}
+						onChange={(event_) => {
+							setDraftField("time", event_.target.value);
+						}}
+					/>
+				<p className="text-red-600 text-sm h-2">{errors["time"]}</p>
+				</div>
+				<div className="flex flex-col">
+				<input
+					className="border p-2 rounded"
+					placeholder="Вулиця"
+					value={draft.addressStreet}
+					onChange={(event_) => {
+						setDraftField("addressStreet", event_.target.value);
+					}}
+				/>
+				<p className="text-red-600 text-sm h-2">{errors["addressStreet"]}</p>
+				</div>
+				<div className="flex flex-col">
+				<input
+					className="border p-2 rounded"
+					placeholder="Будинок"
+					value={draft.addressNumber}
+					onChange={(event_) => {
+						setDraftField("addressNumber", event_.target.value);
+					}}
+				/>
+				<p className="text-red-600 text-sm h-2">{errors["addressNumber"]}</p>
+				</div>
+				<div className="flex flex-col">
+				<input
+					className="border p-2 rounded"
+					placeholder="Імʼя"
+					value={draft.name}
+					onChange={(event_) => {
+						setDraftField("name", event_.target.value);
+					}}
+				/>
+				<p className="text-red-600 text-sm h-2">{errors["name"]}</p>
+				</div>
+				<div className="flex flex-col">
+				<input
+					className="border p-2 rounded"
+					placeholder="Прізвище"
+					value={draft.surname}
+					onChange={(event_) => {
+						setDraftField("surname", event_.target.value);
+					}}
+				/>
+				<p className="text-red-600 text-sm h-2">{errors["surname"]}</p>
+				</div>
+				<div className="flex flex-col">
+				<input
+					className="border p-2 rounded"
+					placeholder="По-батькові"
+					value={draft.patronymic}
+					onChange={(event_) => {
+						setDraftField("patronymic", event_.target.value);
+					}}
+				/>
+				<p className="text-red-600 text-sm h-2">{errors["patronymic"]}</p>
+				</div>
+			</div>
+
+			<RoundedButton variant='blue' onClick={applyFilters}>
+				Пошук
+			</RoundedButton>
+
+			<div className="flex gap-4 mb-4 mt-4 items-center">
+				<RoundedButton onClick={previousPage}>
+					&lt;
+				</RoundedButton>
+
+				<span>Сторінка {applied.pageIndex + 1}</span>
+
+				<RoundedButton onClick={nextPage}>
+					&gt;
+				</RoundedButton>
+			</div>
+
+			<table className="w-full table-auto border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+				<thead className="border-b border-gray-300">
+				<tr className="bg-gray-200 text-left uppercase text-sm font-semibold text-gray-700 divide-x divide-gray-300">
+					<th className="px-4 py-2">Дата</th>
+					{accidents.some((a) => a.type) &&
+						<th className="px-4 py-2">Тип</th>}
+					<th className="px-4 py-2">Адреса</th>
+					{accidents.some((a) => a.causes) &&
+						<th className="px-4 py-2">Причини</th>}
+					<th className="px-4 py-2">Час</th>
+					{accidents.some((a) => a.media) &&
+						<th className="px-4 py-2">Медіа</th>}
+					{accidents.some((a) => a.considerationStatus) &&
+						<th className="px-4 py-2">Статус розгляду</th>}
+					{accidents.some((a) => a.assessmentStatus) &&
+						<th className="px-4 py-2">Статус оцінки</th>}
+					<th className="px-4 py-2">Персони</th>
+					{accidents.some((a) => courtDecisions?.some((cd) => cd.accidentId === a.id)) &&
+						<th className="px-4 py-2">Судові рішення</th>}
 				</tr>
 				</thead>
-				<tbody>
-				{accidents.map(accumulator => {
-					const accidentPersons = persons.filter(p => p.accidentId === accumulator.id);
-					const accidentCourtDecisions = courtDecisions?.filter(cd => cd.accidentId === accumulator.id);
-
+				<tbody className="divide-y  divide-x divide-gray-300">
+				{accidents.map((accumulator) => {
+					const accidentPersons = persons.filter((p) => p.accidentId === accumulator.id);
+					const accidentCourtDecisions = courtDecisions?.filter((cd) => cd.accidentId === accumulator.id);
 					return (
-						<React.Fragment key={accumulator.id}>
-							<tr className="border">
-								<td className="border px-2 py-1">{accumulator.date}</td>
-								{accumulator.type && (
-									<td className="border px-2 py-1">{accumulator.type}</td>
+					<React.Fragment key={accumulator.id}>
+						<tr className="border-b hover:bg-gray-50 divide-x divide-gray-300">
+							<td className="px-4 py-2">{formatDate(accumulator.date)}</td>
+							{accumulator.type && <td className="px-4 py-2">{accumulator.type}</td>}
+							<td className="px-4 py-2">{accumulator.addressStreet}, {accumulator.addressNumber}</td>
+							{accumulator.causes && <td className="px-4 py-2">{accumulator.causes}</td>}
+							<td className="px-4 py-2">{accumulator.time.substring(0, 5)}</td>
+							{accumulator.media && <td className="px-4 py-2 space-y-1">
+								{accumulator.media.photos && (
+									<div>
+										<div className="font-medium">Фото:</div>
+										{accumulator.media.photos.map((v, index) => <div key={index}>{v}</div>)}
+									</div>
 								)}
-								<td className="border px-2 py-1">{accumulator.addressStreet}, {accumulator.addressNumber}</td>
-								{accumulator.causes && (
-									<td className="border px-2 py-1">{accumulator.causes}</td>
+								{accumulator.media.videos && (
+									<div className="mt-2">
+										<div className="font-medium">Відео:</div>
+										{accumulator.media.videos.map((v, index) => <div key={index}>{v}</div>)}
+									</div>
 								)}
-								<td className="border px-2 py-1">{accumulator.time}</td>
-								<td className="border px-2 py-1">
-									<button
-										className={buttonClasses}
-										onClick={() => { setExpandedAccidents(toggleSet(expandedAccidents, accumulator.id)); }}
-									>
-										{expandedAccidents.has(accumulator.id) ? "Згорнути" : "Розгорнути"}
-									</button>
-								</td>
-								{accidentCourtDecisions && (
-									<td className="border px-2 py-1">
-										{accidentCourtDecisions && accidentCourtDecisions.length > 0
-											? accidentCourtDecisions.map(cd => cd.decision).join(", ")
-											: "-"}
-									</td>
-								)}
-							</tr>
+							</td>}
+							{accumulator.considerationStatus && <td className="px-4 py-2">{ConsiderationStatus[accumulator.considerationStatus]}</td>}
+							{accumulator.assessmentStatus && <td className="px-4 py-2">{AssessmentStatus[accumulator.assessmentStatus]}</td>}
+							<td className="px-4 py-2 text-center">
+								<RoundedButton onClick={() => { setExpandedAccidents(toggleSet(expandedAccidents, accumulator.id)); }}>
+									{expandedAccidents.has(accumulator.id) ? "Згорнути" : "Розгорнути"}
+								</RoundedButton>
+							</td>
+							{accidentCourtDecisions && (
+								<td className="px-4 py-2">{accidentCourtDecisions.length > 0 ? accidentCourtDecisions.map((cd) => cd.decision).join(", ") : '-'}</td>
+							)}
+						</tr>
 
-							{expandedAccidents.has(accumulator.id) && accidentPersons.map(p => {
-								const personVehicle = vehicles?.find(v => v.personId === p.person.id && accidentVehicle?.some(av => av.accidentId === accumulator.id && av.vehicleId === v.id));
-								const personAdministrativeDecisions = administrativeDecisions?.filter(ad => ad.personId === p.person.id && ad.accidentId === accumulator.id);
-								const personViolations = violations?.filter(vl => vl.personId === p.person.id && vl.accidentId === accumulator.id);
-								const personMedicalReports = medicalReports?.filter(mr => mr.personId === p.person.id && mr.accidentId === accumulator.id);
-								const personInsuranceEvaluation = personVehicle ? insuranceEvaluations?.find(ie => ie.vehicleId === personVehicle.id && ie.accidentId === accumulator.id) : undefined;
-								const personInsurancePayments = personVehicle ? insurancePayments?.filter(ip => ip.personId === p.person.id && ip.insuranceEvaluationId === personInsuranceEvaluation?.id) : undefined;
+						{expandedAccidents.has(accumulator.id) &&
+							accidentPersons.map((p) => {
+								const personVehicle = vehicles?.find((v) =>
+									v.personId === p.person.id &&
+									accidentVehicle?.some((av) => av.accidentId === accumulator.id && av.vehicleId === v.id)
+								);
+								const personAdministrativeDecisions = administrativeDecisions?.filter((ad) =>
+									ad.personId === p.person.id && ad.accidentId === accumulator.id
+								);
+								const personViolations = violations?.filter((vl) =>
+									vl.personId === p.person.id && vl.accidentId === accumulator.id
+								);
+								const personMedicalReports = medicalReports?.filter((mr) =>
+									mr.personId === p.person.id && mr.accidentId === accumulator.id
+								);
+								const personInsuranceEvaluation = personVehicle
+									? insuranceEvaluations?.find((ie) =>
+										ie.vehicleId === personVehicle.id && ie.accidentId === accumulator.id
+									)
+									: undefined;
+								const personInsurancePayments = personVehicle
+									? insurancePayments?.filter((ip) =>
+										ip.personId === p.person.id && ip.insuranceEvaluationId === personInsuranceEvaluation?.id
+									)
+									: undefined;
 
 								return (
-									<tr key={p.person.id} className="bg-gray-50 border">
+									<tr key={p.person.id} className="bg-gray-50 hover:bg-gray-100">
 										<td></td>
-										<td className="p-2" colSpan={2}>
-											<div>
-												<strong>ПІБ:</strong> {p.person.surname} {p.person.name} {p.person.patronymic}<br/>
-												{p.person.driverLicense && (
-													<>
-														<strong>Посвідчення водія:</strong> {p.person.driverLicense.id} ({p.person.driverLicense.categories.join(", ")})<br/>
-													</>
-												)}
-												{p.person.passportDetails && (
-													<>
-														<strong>Паспортні дані:</strong> {p.person.passportDetails.series} {p.person.passportDetails.id}<br/>
-													</>
-												)}
-												<strong>Роль:</strong> {AccidentRole[p.accidentRole]}<br/>
+										<td className="px-4 py-2" colSpan={3}>
+											<div className="space-y-1">
+												<div><strong>ПІБ:</strong> {p.person.surname} {p.person.name} {p.person.patronymic}</div>
+												{p.person.driverLicense && <div><strong>Посвідчення водія:</strong> {p.person.driverLicense.id} ({p.person.driverLicense.categories.join(", ")})</div>}
+												{p.person.passportDetails && <div><strong>Паспортні дані:</strong> {p.person.passportDetails.series} {p.person.passportDetails.id}</div>}
+												<div><strong>Роль:</strong> {AccidentRole[p.accidentRole]}</div>
 											</div>
 
-											{(personVehicle || (personInsurancePayments && personInsurancePayments.length > 0) ||
-												(personAdministrativeDecisions && personAdministrativeDecisions.length > 0) ||
-												(personViolations && personViolations.length > 0) || (personMedicalReports && personMedicalReports.length > 0)) && (
-												<button
-													className={`${buttonClasses} mt-2`}
-													onClick={() => { setExpandedPersons(togglePairSet(expandedPersons, accumulator.id, p.person.id)); }}
-												>
+											{(personVehicle ||
+												(personInsurancePayments?.length ?? 0) > 0 ||
+												(personAdministrativeDecisions?.length ?? 0) > 0 ||
+												(personViolations?.length ?? 0) > 0 ||
+												(personMedicalReports?.length ?? 0) > 0) && (
+												<RoundedButton className="mt-2" onClick={() => { setExpandedPersons(togglePairSet(expandedPersons, accumulator.id, p.person.id)); }}>
 													{checkIfPairExists(accumulator.id, p.person.id) ? "Згорнути" : "Розгорнути"}
-												</button>
+												</RoundedButton>
 											)}
 
 											{checkIfPairExists(accumulator.id, p.person.id) && (
-												<div className="mt-2 border pl-4 pt-2 bg-gray-100 rounded">
-													{personVehicle && (
-														<div className="mb-2">
-															<strong>ТЗ:</strong> {personVehicle.make} {personVehicle.model} ({personVehicle.licensePlate})
-															{personInsuranceEvaluation && (
-																<div className="mt-2">
-																	<strong>Страховий висновок:</strong> {personInsuranceEvaluation.conclusion}
+												<div className="mt-2 border-l-4 border-gray-300 pl-4 pt-2 pb-2 bg-gray-100 rounded space-y-2">
+													{personVehicle &&
+														<div>
+															<strong>ТЗ: </strong>
+															{personVehicle.make} {personVehicle.model} ({personVehicle.licensePlate})
+															{personInsuranceEvaluation &&
+																<div className="mt-1">
+																	<strong>Страховий висновок: </strong>
+																	{personInsuranceEvaluation.conclusion}
 																</div>
-															)}
+															}
 														</div>
-													)}
-
-													{personInsurancePayments && personInsurancePayments.length > 0 && (
-														<div className="mb-2">
-															<strong>Страхові виплати:</strong>
-															<ul>{personInsurancePayments.map(ip => <li key={ip.id}>{ip.payment/100} UAH</li>)}</ul>
+													}
+													{personInsurancePayments && personInsurancePayments.length > 0 &&
+														<div>
+															<strong>Страхові виплати: </strong>
+															<ul className="list-disc list-inside">
+																{personInsurancePayments.map((ip) =>
+																	<li key={ip.id}>{ip.payment / 100} UAH</li>)}
+															</ul>
 														</div>
-													)}
-
-													{personAdministrativeDecisions && personAdministrativeDecisions.length > 0 && (
-														<div className="mb-2">
-															<strong>Адміністративні рішення:</strong>
-															<ul>{personAdministrativeDecisions.map(ad => <li key={ad.accidentId}>{ad.decision}</li>)}</ul>
+													}
+													{personAdministrativeDecisions && personAdministrativeDecisions.length > 0 &&
+														<div>
+															<strong>Адміністративні рішення: </strong>
+															<ul className="list-disc list-inside">
+																{personAdministrativeDecisions.map((ad) =>
+																	<li key={ad.accidentId}>{ad.decision}</li>)}
+															</ul>
 														</div>
-													)}
-
-													{personViolations && personViolations.length > 0 && (
-														<div className="mb-2">
-															<strong>Порушення:</strong>
-															<ul>{personViolations.map(vl => <li key={vl.id}>{vl.violation}</li>)}</ul>
+													}
+													{personViolations && personViolations.length > 0 &&
+														<div>
+															<strong>Порушення: </strong>
+															<ul className="list-disc list-inside">{personViolations.map((vl) =>
+																<li key={vl.id}>{vl.violation}</li>)}
+															</ul>
 														</div>
-													)}
-
-													{personMedicalReports && personMedicalReports.length > 0 && (
-														<div className="mb-2">
-															<strong>Медичні вироки:</strong>
-															<ul>{personMedicalReports.map(mr => <li key={mr.id}>{mr.report}</li>)}</ul>
+													}
+													{personMedicalReports && personMedicalReports.length > 0 &&
+														<div>
+															<strong>Медичні вироки: </strong>
+															<ul className="list-disc list-inside">
+																{personMedicalReports.map((mr) =>
+																	<li key={mr.id}>{mr.report}</li>)}
+															</ul>
 														</div>
-													)}
+													}
 												</div>
 											)}
 										</td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
 									</tr>
 								);
 							})}
-						</React.Fragment>
-					);
-				})}
-				</tbody>
-			</table>
+					</React.Fragment>
+				);
+			})}
+
+			</tbody> </table>
 		</div>
 	);
 }

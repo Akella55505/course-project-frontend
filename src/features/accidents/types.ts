@@ -15,8 +15,8 @@ export type Accident = {
 	addressStreet: string;
 	addressNumber: string;
 	causes: string;
-	considerationStatus: ConsiderationStatus;
-	assessmentStatus: AssessmentStatus;
+	considerationStatus: keyof typeof ConsiderationStatus;
+	assessmentStatus: keyof typeof AssessmentStatus;
 	type: string;
 	time: string;
 };
