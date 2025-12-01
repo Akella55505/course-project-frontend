@@ -1,4 +1,4 @@
-import type { FunctionComponent } from "../common/types";
+import type { FunctionComponent } from "../../../common/types.ts";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 

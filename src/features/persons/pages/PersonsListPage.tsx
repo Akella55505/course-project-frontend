@@ -1,5 +1,5 @@
 import { Link, Outlet } from "@tanstack/react-router";
-import { usePersons, useDeletePerson } from '../api';
+import { usePersons } from '../api';
 import type { ReactElement } from "react";
 import type { Person } from "../types";
 import { Route } from "../../../routes/persons.tsx";
@@ -12,12 +12,7 @@ export type PersonsResponse = {
 
 export function PersonsListPage(): ReactElement {
 	const { data: personsResponse, isLoading, isError, error } = usePersons();
-	const deletePersonMutation = useDeletePerson();
-	const handleDelete = (id: string): void => {
-		if (window.confirm('Are you sure you want to delete this person?')) {
-			deletePersonMutation.mutate(id);
-		}
-	};
+
 
 	if (isLoading) return loadingAnimation();
 
@@ -70,15 +65,6 @@ export function PersonsListPage(): ReactElement {
 								>
 									Edit
 								</Link>
-								<button
-									className="text-red-600 hover:text-red-900 disabled:opacity-50 cursor-pointer"
-									disabled={deletePersonMutation.isPending}
-									onClick={() => {
-										handleDelete(String(person.id));
-									}}
-								>
-									Delete
-								</button>
 							</td>
 						</tr>
 					)

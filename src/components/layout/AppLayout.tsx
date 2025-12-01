@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactElement} from "react";
 import { useLogout } from "../../features/auth/api.ts";
+import { RoundedButton } from "../ui/RoundedButton.tsx";
 
 export function AppLayout(): ReactElement {
 	const navigate = useNavigate();
@@ -26,15 +27,15 @@ export function AppLayout(): ReactElement {
 					</Link>
 				</nav>
 				{!isLoginPage && (
-					<button
-						className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded cursor-pointer"
+					<RoundedButton
+						variant='red'
 						onClick={async () => {
 							await logout.mutateAsync({});
 							await navigate({ to: "/login" });
 						}}
 					>
-						Вийти
-					</button>
+					Вийти
+					</RoundedButton>
 				)}
 			</header>
 			<main>
