@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { z } from "zod";
 import { useCreateUserApplication } from "../api.ts";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
+import { toast } from "react-hot-toast";
 
 const schema = z.object({
 	name: z.string().min(1, "Введіть ім'я"),
@@ -61,6 +62,7 @@ export function UserCreateApplicationPage(): ReactElement {
 			time: `${form.time}:00`,
 		};
 		createUserApplication.mutate(payload);
+		toast.success('Заяву успішно створено. Очікуйте на листа на ваш email');
 	};
 
 	return (

@@ -4,6 +4,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import type { FunctionComponent } from "./common/types";
 import type { TanstackRouter } from "./main";
 import { TanStackRouterDevelopmentTools } from "./components/utils/development-tools/TanStackRouterDevelopmentTools";
+import { Toaster } from 'react-hot-toast';
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,9 @@ const App = ({ router }: AppProps): FunctionComponent => {
 				router={router}
 			/>
 			<ReactQueryDevtools initialIsOpen={false} position="bottom" />
+			<Toaster
+			position="top-right"
+			/>
 		</QueryClientProvider>
 	);
 };

@@ -78,7 +78,7 @@ export function UserListPage(): ReactElement {
 					</div>
 
 					{setPersonEmail.isError && (
-						<div className="text-red-600 text-sm font-semibold">
+						<div className="text-red-600 text-sm">
 							Персони немає в базі
 						</div>
 					)}
