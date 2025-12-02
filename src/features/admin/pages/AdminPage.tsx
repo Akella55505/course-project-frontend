@@ -8,45 +8,57 @@ export function AdminPage(): ReactElement {
 	const [role, setRole] = useState<ApplicationRole>(ApplicationRole.USER);
 	const { mutate, isPending, isError } = useUpdateUserRole();
 
-	const handleSubmit = (): void => {
+	const handleSubmit = (event_: React.FormEvent): void => {
+		event_.preventDefault();
 		mutate({ email, role });
 	};
 
+	const roleOptions = Object.values(ApplicationRole);
+
 	return (
-		<div className="flex flex-col items-center gap-4 p-6">
-			<h1 className="text-xl font-bold">Update User Role</h1>
-
-			<input
-				className="border p-2 rounded w-64"
-				placeholder="User Email"
-				type="email"
-				value={email}
-				onChange={event_ => { setEmail(event_.target.value); }}
-			/>
-
-			<select
-				className="border p-2 rounded w-64"
-				value={role}
-				onChange={event_ => { setRole(event_.target.value as ApplicationRole); }}
+		<div className="max-w-lg mx-auto p-6">
+			<form
+				className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg"
+				onSubmit={handleSubmit}
 			>
-				{Object.values(ApplicationRole).map(r => (
-					<option key={r} value={r}>
-						{r}
-					</option>
-				))}
-			</select>
+				<h1 className="text-xl font-bold">Надати роль користувачу</h1>
 
-			<RoundedButton
-				disabled={isPending}
-				variant="blue"
-				onClick={handleSubmit}
-			>
-				{isPending ? "Updating..." : "Update Role"}
-			</RoundedButton>
+				<input
+					className="border p-2 rounded"
+					placeholder="Email"
+					type="email"
+					value={email}
+					onChange={event_ => { setEmail(event_.target.value); }}
+				/>
 
-			{isError && (
-				<p className="text-red-500 text-sm">Failed to update role</p>
-			)}
+				<select
+					className="border p-2 rounded"
+					value={role}
+					onChange={event_ => { setRole(event_.target.value as ApplicationRole); }}
+				>
+					{roleOptions.map(r => (
+						<option key={r} value={r}>
+							{r}
+						</option>
+					))}
+				</select>
+
+				{isError && (
+					<div className="text-red-600 text-sm border border-red-300 p-2 rounded">
+						Користувача не існує
+					</div>
+				)}
+
+				<RoundedButton
+					className="transition p-2"
+					disabled={isPending}
+					size="large"
+					type="submit"
+					variant="blue"
+				>
+					{isPending ? "Зачекайте..." : "Надати"}
+				</RoundedButton>
+			</form>
 		</div>
 	);
 }

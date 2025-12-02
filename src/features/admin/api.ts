@@ -2,6 +2,7 @@ import apiClient from "../../lib/axios.ts";
 import type { ApplicationRole } from "../auth/types.ts";
 import type { UseMutationResult} from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 type QueryParameters = {
 	email: string;
@@ -14,6 +15,9 @@ const updateUserRole = async ({ email, role }: QueryParameters): Promise<void> =
 
 export const useUpdateUserRole = (): UseMutationResult<void, Error, QueryParameters> => {
 	return useMutation({
-		mutationFn: updateUserRole
+		mutationFn: updateUserRole,
+		onSuccess: () => {
+			toast.success("Роль користувача успішно оновлено");
+		}
 	});
 };
