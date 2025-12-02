@@ -33,8 +33,7 @@ export const getRole = async (): Promise<Record<string, ApplicationRole>> => {
 export const useRegister = (): UseMutationResult<
 	void,
 	Error,
-	LoginInput,
-	unknown
+	LoginInput
 > => {
 	const navigate = useNavigate();
 
@@ -49,8 +48,7 @@ export const useRegister = (): UseMutationResult<
 export const useLogin = (): UseMutationResult<
 	void,
 	Error,
-	LoginInput,
-	unknown
+	LoginInput
 > => {
 	const navigate = useNavigate();
 
