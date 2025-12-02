@@ -320,7 +320,7 @@ export function AccidentsListPage(): ReactElement {
 									v.personId === p.person.id &&
 									accidentVehicle?.some((av) => av.accidentId === accumulator.id && av.vehicleId === v.id)
 								);
-								const personAdministrativeDecisions = administrativeDecisions?.filter((ad) =>
+								const personAdministrativeDecision = administrativeDecisions?.find((ad) =>
 									ad.personId === p.person.id && ad.accidentId === accumulator.id
 								);
 								const personViolations = violations?.filter((vl) =>
@@ -353,7 +353,7 @@ export function AccidentsListPage(): ReactElement {
 
 											{(personVehicle ||
 												(personInsurancePayments?.length ?? 0) > 0 ||
-												(personAdministrativeDecisions?.length ?? 0) > 0 ||
+												personAdministrativeDecision ||
 												(personViolations?.length ?? 0) > 0 ||
 												(personMedicalReports?.length ?? 0) > 0) && (
 												<RoundedButton className="mt-2" onClick={() => { setExpandedPersons(togglePairSet(expandedPersons, accumulator.id, p.person.id)); }}>
@@ -384,13 +384,10 @@ export function AccidentsListPage(): ReactElement {
 															</ul>
 														</div>
 													}
-													{personAdministrativeDecisions && personAdministrativeDecisions.length > 0 &&
+													{personAdministrativeDecision &&
 														<div>
-															<strong>Адміністративні рішення: </strong>
-															<ul className="list-disc list-inside">
-																{personAdministrativeDecisions.map((ad) =>
-																	<li key={ad.accidentId}>{ad.decision}</li>)}
-															</ul>
+															<strong>Адміністративне рішення: </strong>
+															{personAdministrativeDecision.decision}
 														</div>
 													}
 													{personViolations && personViolations.length > 0 &&
