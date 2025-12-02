@@ -1,12 +1,12 @@
-import type { AdministrativeDecision } from "../administrative decision/types";
+import type {	AdministrativeDecision } from "../administrative decision/types";
 import type { CourtDecision } from "../court decision/types";
-import type { InsuranceEvaluation } from "../insurance/evaluation/types";
+import type {	InsuranceEvaluation } from "../insurance/evaluation/types";
 import type { Person } from "../persons/types";
 import type { Vehicle } from "../vehicles/types";
-import type { InsurancePayment } from "../insurance/payment/types.ts";
 import type { MedicalReport } from "../medical report/types.ts";
 import type { Violation } from "../violation/types.ts";
 import type { AccidentVehicle, PersonAccidentRole } from "../many-to-many/types.ts";
+import type { InsurancePayment } from "../insurance/payment/types.ts";
 
 export type Accident = {
 	id: number;
