@@ -17,10 +17,11 @@ apiClient.interceptors.response.use(
 	(error: unknown) => {
 		if (isAxiosError(error)) {
 			console.error(`API error ${error.name}: ${error.message}`);
+			if (window.location.pathname === '/login' || window.location.pathname === '/register') return;
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			if (error.response?.status === 401 || error.response?.data.errorMessage === 'Authorization header not provided') {
 				void logout();
-				window.location.href = '/login'
+				window.location.href = '/'
 			}
 			if (error.response?.status === 403) {
 				window.location.href = '/'
