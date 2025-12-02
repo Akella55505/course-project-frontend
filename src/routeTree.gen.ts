@@ -14,6 +14,7 @@ import { Route as UserRouteImport } from './routes/user'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PersonsRouteImport } from './routes/persons'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccidentsRouteImport } from './routes/accidents'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VehiclesNewRouteImport } from './routes/vehicles.new'
@@ -45,6 +46,11 @@ const PersonsRoute = PersonsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccidentsRoute = AccidentsRouteImport.update({
@@ -86,6 +92,7 @@ const AccidentsNewRoute = AccidentsNewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accidents': typeof AccidentsRouteWithChildren
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accidents': typeof AccidentsRouteWithChildren
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accidents': typeof AccidentsRouteWithChildren
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accidents'
+    | '/admin'
     | '/login'
     | '/persons'
     | '/register'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accidents'
+    | '/admin'
     | '/login'
     | '/persons'
     | '/register'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/accidents'
+    | '/admin'
     | '/login'
     | '/persons'
     | '/register'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccidentsRoute: typeof AccidentsRouteWithChildren
+  AdminRoute: typeof AdminRoute
   LoginRoute: typeof LoginRoute
   PersonsRoute: typeof PersonsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/accidents': {
@@ -311,6 +331,7 @@ const VehiclesRouteWithChildren = VehiclesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccidentsRoute: AccidentsRouteWithChildren,
+  AdminRoute: AdminRoute,
   LoginRoute: LoginRoute,
   PersonsRoute: PersonsRouteWithChildren,
   RegisterRoute: RegisterRoute,
