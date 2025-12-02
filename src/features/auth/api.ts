@@ -1,9 +1,5 @@
 import type { UseQueryResult } from "@tanstack/react-query";
-import {
-	useMutation,
-	type UseMutationResult,
-	useQuery,
-} from "@tanstack/react-query";
+import { useMutation, type UseMutationResult, useQuery } from "@tanstack/react-query";
 import apiClient from "../../lib/axios";
 import { useNavigate } from "@tanstack/react-router";
 import { ApplicationRole } from "./types.ts";
@@ -61,6 +57,7 @@ export const useLogin = (): UseMutationResult<
 			const role = roleResult["role"];
 
 			if (role === ApplicationRole.USER) await navigate({ to: "/user" });
+			else if (role === ApplicationRole.ADMIN) await navigate({ to: "/admin" });
 			else await navigate({ to: "/accidents" });
 		},
 	});
