@@ -62,7 +62,9 @@ export function UserCreateApplicationPage(): ReactElement {
 			time: `${form.time}:00`,
 		};
 		createUserApplication.mutate(payload);
-		toast.success('Заяву успішно створено. Очікуйте на листа на ваш email');
+		toast.success('Заяву успішно створено. Очікуйте на листа на ваш email', {
+			duration: 3000
+		});
 	};
 
 	return (

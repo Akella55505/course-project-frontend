@@ -104,7 +104,7 @@ export function UserListPage(): ReactElement {
 						НЕМАЄ ДАНИХ. СПРОБУЙТЕ ПРИВ'ЯЗАТИ АКАУНТ.
 					</h1>
 
-					<RoundedButton onClick={() => { setOpen(true); }}>
+					<RoundedButton variant="blue" onClick={() => { setOpen(true); }}>
 						Прив'язати акаунт
 					</RoundedButton>
 				</div>

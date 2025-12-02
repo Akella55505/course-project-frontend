@@ -7,6 +7,7 @@ import {
 import apiClient from "../../lib/axios";
 import { useNavigate } from "@tanstack/react-router";
 import { ApplicationRole } from "./types.ts";
+import toast from "react-hot-toast";
 
 type LoginInput = {
 	email: string;
@@ -40,6 +41,7 @@ export const useRegister = (): UseMutationResult<
 	return useMutation({
 		mutationFn: register,
 		onSuccess: async () => {
+			toast.success("Успішно зареєстровано");
 			await navigate({ to: "/login" });
 		},
 	});
