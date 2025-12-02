@@ -1,6 +1,5 @@
 import { useUserData } from "../api";
 import type { ReactElement} from "react";
-import { useEffect } from "react";
 import { useState } from "react";
 import { loadingAnimation } from "../../../common/elements.tsx";
 import {
@@ -10,6 +9,8 @@ import {
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { usePersonEmail } from "../../persons/api.ts";
 import { useNavigate } from "@tanstack/react-router";
+import { Popup } from "../../../components/ui/Popup.tsx";
+import { PopupField } from "../../../components/ui/PopupField.tsx";
 
 export function UserListPage(): ReactElement {
 	const { data, isLoading, isError, error } = useUserData();
@@ -36,69 +37,31 @@ export function UserListPage(): ReactElement {
 	const update = (k: "id" | "series", v: string): void =>
 	{ setForm({ ...form, [k]: v }); };
 
-	const LockScroll = (): null => {
-		useEffect(() => {
-			document.body.style.overflow = "hidden";
-			return (): void => { document.body.style.overflow = ""; };
-		}, []);
-		return null;
-	};
-
-	const popup =
-		open && (
-			<>
-			<LockScroll />
-			<div className="z-50 fixed inset-0 bg-black/50 flex items-center justify-center">
-				<div className="bg-white p-6 rounded-lg shadow-md w-80 space-y-4">
-					<div className="space-y-1">
-						<label className="font-semibold">ID</label>
-						<input
-							className="border p-2 rounded w-full"
-							placeholder="ID"
-							value={form.id}
-							onChange={(event_) => { update("id", event_.target.value); }}
-						/>
-					</div>
-
-					<div className="space-y-1">
-						<label className="font-semibold">Серія</label>
-						<input
-							className="border p-2 rounded w-full"
-							placeholder="Серія"
-							value={form.series}
-							onChange={(event_) => { update("series", event_.target.value); }}
-						/>
-					</div>
-
-					{setPersonEmail.isError && (
-						<div className="text-red-600 text-sm">
-							Персони немає в базі
-						</div>
-					)}
-
-					<div className="flex justify-end space-x-2">
-						<RoundedButton
-							variant='red'
-							onClick={() => { setOpen(false); }}
-						>
-							Скасувати
-						</RoundedButton>
-						<RoundedButton
-							variant='blue'
-							onClick={submit}
-						>
-							Підтвердити
-						</RoundedButton>
-					</div>
-				</div>
-			</div>
-			</>
-		);
-
 	const dataFetchError = (): ReactElement => {
 		return (
 			<div className="min-h-screen flex items-center justify-center relative">
-				{popup}
+				<Popup
+					error={setPersonEmail.isError ? "Персони немає в базі" : null}
+					open={open}
+					onCancel={() => { setOpen(false); }}
+					onSubmit={submit}
+				>
+					<PopupField label="ID">
+						<input
+							className="border p-2 rounded w-full"
+							value={form.id}
+							onChange={event_ => { update("id", event_.target.value); }}
+						/>
+					</PopupField>
+
+					<PopupField label="Серія">
+						<input
+							className="border p-2 rounded w-full"
+							value={form.series}
+							onChange={event_ => { update("series", event_.target.value); }}
+						/>
+					</PopupField>
+				</Popup>
 
 				<div className="flex flex-col items-center gap-6">
 					<h1 className="text-gray-500 text-2xl font-bold text-center">
