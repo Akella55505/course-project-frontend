@@ -78,6 +78,7 @@ export function UserListPage(): ReactElement {
 
 					<div className="flex justify-end space-x-2">
 						<RoundedButton
+							variant='red'
 							onClick={() => { setOpen(false); }}
 						>
 							Скасувати
