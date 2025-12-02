@@ -24,7 +24,6 @@ export function RegisterPage(): ReactElement {
 				<button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 cursor-pointer" disabled={isPending} type="submit">
 					{isPending ? 'Зачекайте...' : 'Зареєструватися'}
 				</button>
-				{error && <p className="text-red-500 text-sm">Користувач з таким email вже існує</p>}
 				<button
 					className="hover:cursor-pointer text-blue-700 underline underline-offset-4"
 					type="button"
@@ -32,6 +31,7 @@ export function RegisterPage(): ReactElement {
 				>
 					Увійти
 				</button>
+				{error && <p className="text-red-500 text-sm">Користувач з таким email вже існує</p>}
 			</form>
 		</div>
 	);
