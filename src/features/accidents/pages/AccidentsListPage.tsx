@@ -7,6 +7,8 @@ import { AccidentRole } from "../../many-to-many/types.ts";
 import { z } from "zod";
 import { AssessmentStatus, ConsiderationStatus } from "../types.ts";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
+import { useRole } from "../../auth/api.ts";
+import { ApplicationRole } from "../../auth/types.ts";
 
 const accidentSchema = z.object({
 	date: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Введіть дату в форматі РРРР-ММ-ДД").or(z.literal('')),
@@ -48,6 +50,7 @@ export function AccidentsListPage(): ReactElement {
 	const { data, isLoading, isError, error } = useAccidents(applied);
 	const [expandedAccidents, setExpandedAccidents] = useState<Set<number>>(new Set());
 	const [expandedPersons, setExpandedPersons] = useState<Set<string>>(new Set());
+	const getRole = useRole();
 
 	const setDraftField = (field: string, value: string): void => {
 		if (value === '') setDraft(previous => ({ ...previous, [field]: undefined }));
@@ -155,6 +158,9 @@ export function AccidentsListPage(): ReactElement {
 	if (accidents === undefined || persons === undefined) {
 		return dataFetchError();
 	}
+
+	// @ts-expect-error Always defined
+	const userRole = getRole.data["role"];
 
 	return (
 		<div className="p-4">
@@ -310,7 +316,8 @@ export function AccidentsListPage(): ReactElement {
 								</RoundedButton>
 							</td>
 							{accidentCourtDecisions && (
-								<td className="px-4 py-2">{accidentCourtDecisions.length > 0 ? accidentCourtDecisions.map((cd) => cd.decision).join(", ") : '-'}</td>
+								<td className="px-4 py-2">{accidentCourtDecisions.length > 0 ? accidentCourtDecisions.map((cd) =>
+									cd.decision).join(", ") : userRole === ApplicationRole.COURT ? <RoundedButton variant="blue">Створити</RoundedButton> : '-'}</td>
 							)}
 						</tr>
 
@@ -344,11 +351,42 @@ export function AccidentsListPage(): ReactElement {
 									<tr key={p.person.id} className="bg-gray-50 hover:bg-gray-100">
 										<td></td>
 										<td className="px-4 py-2" colSpan={3}>
-											<div className="space-y-1">
-												<div><strong>ПІБ:</strong> {p.person.surname} {p.person.name} {p.person.patronymic}</div>
-												{p.person.driverLicense && <div><strong>Посвідчення водія:</strong> {p.person.driverLicense.id} ({p.person.driverLicense.categories.join(", ")})</div>}
-												{p.person.passportDetails && <div><strong>Паспортні дані:</strong> {p.person.passportDetails.series} {p.person.passportDetails.id}</div>}
-												<div><strong>Роль:</strong> {AccidentRole[p.accidentRole]}</div>
+											<div className="flex justify-between">
+												<div className="space-y-1">
+													<div><strong>ПІБ:</strong> {p.person.surname} {p.person.name} {p.person.patronymic}</div>
+													{p.person.driverLicense && (
+														<div><strong>Посвідчення водія:</strong> {p.person.driverLicense.id} ({p.person.driverLicense.categories.join(", ")})</div>
+													)}
+													{p.person.passportDetails && (
+														<div><strong>Паспортні дані:</strong> {p.person.passportDetails.series} {p.person.passportDetails.id}</div>
+													)}
+													<div><strong>Роль:</strong> {AccidentRole[p.accidentRole]}</div>
+												</div>
+
+												<div className="flex flex-col space-y-2">
+													{userRole !== ApplicationRole.COURT && (
+														<strong className="self-center">Створити</strong>
+													)}
+													{userRole === ApplicationRole.POLICE && (
+														<div className="flex flex-col space-y-2">
+															{p.accidentRole === 'CULPRIT' && personAdministrativeDecision === undefined && (
+																<RoundedButton variant="blue">Адмін. рішення</RoundedButton>
+															)}
+															<RoundedButton variant="blue">Порушення</RoundedButton>
+														</div>
+														)}
+													{userRole === ApplicationRole.INSURANCE && (
+														<div className="flex flex-col space-y-2">
+															{personInsuranceEvaluation === undefined && (
+																<RoundedButton variant="blue">Страх. оцінку</RoundedButton>
+															)}
+															<RoundedButton variant="blue">Страх. виплату</RoundedButton>
+														</div>
+													)}
+													{userRole === ApplicationRole.MEDIC && (
+														<RoundedButton variant="blue">Мед. висновок</RoundedButton>
+													)}
+												</div>
 											</div>
 
 											{(personVehicle ||
