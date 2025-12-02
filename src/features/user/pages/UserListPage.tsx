@@ -1,5 +1,6 @@
 import { useUserData } from "../api";
 import type { ReactElement} from "react";
+import { useEffect } from "react";
 import { useState } from "react";
 import { loadingAnimation } from "../../../common/elements.tsx";
 import {
@@ -26,24 +27,6 @@ export function UserListPage(): ReactElement {
 			</div>
 		);
 
-	const dataFetchError = (): ReactElement =>
-		<h1 className="text-gray-500 text-2xl font-bold flex justify-center">НЕМАЄ ДАНИХ. СПРОБУЙТЕ ПРИВ'ЯЗАТИ АКАУНТ.</h1>;
-
-	if (!data) return dataFetchError();
-
-	const {
-		accidentData: accidents,
-		vehicleData: vehicles,
-		insuranceEvaluationData: insuranceEvaluations,
-		insurancePaymentData: insurancePayments,
-		administrativeDecisionData: administrativeDecisions,
-		violationData: violations,
-		courtDecisionData: courtDecisions,
-		accidentVehicleData: accidentVehicle,
-	} = data;
-
-	if (!accidents) return dataFetchError();
-
 	const submit = (): void => {
 		setPersonEmail.mutate(form, {
 			onSuccess: () => { setOpen(false); },
@@ -51,11 +34,21 @@ export function UserListPage(): ReactElement {
 	};
 
 	const update = (k: "id" | "series", v: string): void =>
-		{ setForm({ ...form, [k]: v }); };
-	
+	{ setForm({ ...form, [k]: v }); };
+
+	const LockScroll = (): null => {
+		useEffect(() => {
+			document.body.style.overflow = "hidden";
+			return (): void => { document.body.style.overflow = ""; };
+		}, []);
+		return null;
+	};
+
 	const popup =
 		open && (
-			<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+			<>
+			<LockScroll />
+			<div className="z-50 fixed inset-0 bg-black/50 flex items-center justify-center">
 				<div className="bg-white p-6 rounded-lg shadow-md w-80 space-y-4">
 					<div className="space-y-1">
 						<label className="font-semibold">ID</label>
@@ -98,30 +91,54 @@ export function UserListPage(): ReactElement {
 					</div>
 				</div>
 			</div>
+			</>
 		);
 
-	return (
-		<div className="p-6 bg-gray-50 min-h-screen">
-			{popup}
+	const dataFetchError = (): ReactElement => {
+		return (
+			<div className="min-h-screen flex items-center justify-center relative">
+				{popup}
 
-			<div className="flex items-center justify-between mb-4">
-				<h1 className="text-2xl font-bold">ДТП</h1>
-				<div className="flex gap-4">
-					<RoundedButton
-						onClick={async () => {
-							await navigate({ to: "/user/form" });
-						}}
-					>
-						Повідомити про ДТП
-					</RoundedButton>
-					<RoundedButton
-						onClick={() => {
-							setOpen(true);
-						}}
-					>
+				<div className="flex flex-col items-center gap-6">
+					<h1 className="text-gray-500 text-2xl font-bold text-center">
+						НЕМАЄ ДАНИХ. СПРОБУЙТЕ ПРИВ'ЯЗАТИ АКАУНТ.
+					</h1>
+
+					<RoundedButton onClick={() => { setOpen(true); }}>
 						Прив'язати акаунт
 					</RoundedButton>
 				</div>
+			</div>
+		);
+	};
+
+
+	if (!data) return dataFetchError();
+
+	const {
+		accidentData: accidents,
+		vehicleData: vehicles,
+		insuranceEvaluationData: insuranceEvaluations,
+		insurancePaymentData: insurancePayments,
+		administrativeDecisionData: administrativeDecisions,
+		violationData: violations,
+		courtDecisionData: courtDecisions,
+		accidentVehicleData: accidentVehicle,
+	} = data;
+
+	if (!accidents) return dataFetchError();
+
+	return (
+		<div className="p-6 bg-gray-50 min-h-screen">
+			<div className="flex items-center justify-between mb-4">
+				<h1 className="text-2xl font-bold">ДТП</h1>
+				<RoundedButton
+					onClick={async () => {
+						await navigate({ to: "/user/form" });
+					}}
+				>
+					Повідомити про ДТП
+				</RoundedButton>
 			</div>
 
 			<div className="space-y-6">
