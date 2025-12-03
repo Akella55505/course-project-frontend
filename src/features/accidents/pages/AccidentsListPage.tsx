@@ -9,6 +9,18 @@ import { AssessmentStatus, ConsiderationStatus } from "../types.ts";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { useRole } from "../../auth/api.ts";
 import { ApplicationRole } from "../../auth/types.ts";
+import { Popup } from "../../../components/ui/Popup.tsx";
+import { PopupField } from "../../../components/ui/PopupField.tsx";
+import { useCreateAdministrativeDecision } from "../../administrative decision/api.ts";
+import { useCreateViolation } from "../../violation/api.ts";
+import { useCreateInsuranceEvaluation } from "../../insurance/evaluation/api.ts";
+import { useCreateInsurancePayment } from "../../insurance/payment/api.ts";
+import { useCreateMedicalReport } from "../../medical report/api.ts";
+import toast from "react-hot-toast";
+import { useCreateCourtDecision } from "../../court decision/api.ts";
+import { usePoliceIsRegistered } from "../../policeman/api.ts";
+import { useMedicIsRegistered } from "../../medic/api.ts";
+import { useNavigate } from "@tanstack/react-router";
 
 const accidentSchema = z.object({
 	date: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Введіть дату в форматі РРРР-ММ-ДД").or(z.literal('')),
@@ -25,6 +37,15 @@ const accidentSchema = z.object({
 	},
 	{ message: "Введіть ПІБ повністю", path: ["name"]
 	});
+
+type PopupKind =
+	| null
+	| { type: 'ADMINISTRATIVE_DECISION'; accidentId: number; personId: number; decision: string; error: string | null; }
+	| { type: 'VIOLATION'; accidentId: number; personId: number; violation: string; error: string | null }
+	| { type: 'INSURANCE_EVALUATION'; accidentId: number; vehicleId: number; conclusion: string; error: string | null }
+	| { type: 'INSURANCE_PAYMENT'; personId: number; insuranceEvaluationId: number; payment: string; error: string | null }
+	| { type: 'MEDICAL_REPORT'; accidentId: number; personId: number; report: string; error: string | null }
+	| { type: 'COURT_DECISION'; accidentId: number; decision: string; error: string | null };
 
 export function AccidentsListPage(): ReactElement {
 	const [draft, setDraft] = useState({
@@ -46,11 +67,19 @@ export function AccidentsListPage(): ReactElement {
 		patronymic: undefined,
 		pageIndex: 0
 	});
+	const navigate = useNavigate();
+	const [popup, setPopup] = useState<PopupKind>(null);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const { data, isLoading, isError, error } = useAccidents(applied);
 	const [expandedAccidents, setExpandedAccidents] = useState<Set<number>>(new Set());
 	const [expandedPersons, setExpandedPersons] = useState<Set<string>>(new Set());
 	const getRole = useRole();
+	const createAdministrativeDecision = useCreateAdministrativeDecision();
+	const createViolation = useCreateViolation();
+	const createInsuranceEvaluation = useCreateInsuranceEvaluation();
+	const createInsurancePayment = useCreateInsurancePayment();
+	const createMedicalReport = useCreateMedicalReport();
+	const createCourtDecision = useCreateCourtDecision();
 
 	const setDraftField = (field: string, value: string): void => {
 		if (value === '') setDraft(previous => ({ ...previous, [field]: undefined }));
@@ -105,7 +134,7 @@ export function AccidentsListPage(): ReactElement {
 	const previousPage = (): void =>
 		{ setApplied(previous => ({ ...previous, pageIndex: Math.max(0, previous.pageIndex - 1) })); };
     
-	if (isLoading) return loadingAnimation();
+	if (isLoading || getRole.isLoading) return loadingAnimation();
 	if (isError) return <div className="flex items-center justify-center h-screen text-4xl font-bold">Error loading accidents: {error.message}</div>;
 
 	const toggleSet = (set: Set<number>, id: number): Set<number> => {
@@ -161,10 +190,194 @@ export function AccidentsListPage(): ReactElement {
 
 	// @ts-expect-error Always defined
 	const userRole = getRole.data["role"];
+	console.log(userRole);
+
+	const MedicLinkAccount = (): ReactElement | null => {
+		const { data } = useMedicIsRegistered();
+		return !data?.isRegistered ? (
+			<RoundedButton
+				variant="blue"
+				onClick={async () => {
+					await navigate({ to: "/register/medic" });
+				}}
+			>
+				Прив'язати акаунт
+			</RoundedButton>
+		) : null;
+	}
+
+	const PoliceLinkAccount = (): ReactElement | null => {
+		const { data } = usePoliceIsRegistered();
+		return !data?.isRegistered ? (
+			<RoundedButton
+				variant="blue"
+				onClick={async () => {
+					await navigate({ to: "/register/police" });
+				}}
+			>
+				Прив'язати акаунт
+			</RoundedButton>
+		) : null;
+	}
+
+	const updatePopup = <K extends keyof typeof popup>(
+		key: K,
+		value: typeof popup[K]
+	): void => {
+		if (!popup) return;
+		setPopup({ ...popup, [key]: value });
+	};
+
+	const submitHandlers = {
+		ADMINISTRATIVE_DECISION: (p: Extract<PopupKind, { type: 'ADMINISTRATIVE_DECISION' }>): void =>
+			{ createAdministrativeDecision.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, decision: p.decision },
+				{ onSuccess: () => {
+						setPopup(null);
+						toast.success("Успішно створено");
+					},
+					onError: () => {
+						toast.error("Виникла помилка. Прив'яжіть ваші дані до акаунту", { duration: 3000 });
+					} }); },
+		VIOLATION: (p: Extract<PopupKind, { type: 'VIOLATION' }>) =>
+			{ createViolation.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, violation: p.violation },
+				{ onSuccess: () => {
+						setPopup(null);
+						toast.success("Успішно створено");
+					} }); },
+		INSURANCE_EVALUATION: (p: Extract<PopupKind, { type: 'INSURANCE_EVALUATION' }>) =>
+			{ createInsuranceEvaluation.mutate(
+				{
+					id: 0,
+					accidentId: p.accidentId,
+					vehicleId: p.vehicleId,
+					conclusion: p.conclusion,
+				},
+				{ onSuccess: () => {
+					setPopup(null);
+					toast.success("Успішно створено");
+					} }
+			); },
+		INSURANCE_PAYMENT: (p: Extract<PopupKind, { type: 'INSURANCE_PAYMENT' }>) =>
+			{ createInsurancePayment.mutate({ id: 0, personId: p.personId, insuranceEvaluationId: p.insuranceEvaluationId, payment: Math.round(parseFloat(p.payment) * 100) },
+				{ onSuccess: () => {
+						setPopup(null);
+						toast.success("Успішно створено");
+					}}); },
+		MEDICAL_REPORT: (p: Extract<PopupKind, { type: 'MEDICAL_REPORT' }>) =>
+			{ createMedicalReport.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, report: p.report },
+				{ onSuccess: () => {
+						setPopup(null);
+						toast.success("Успішно створено");
+					},
+					onError: () => {
+						toast.error("Виникла помилка. Прив'яжіть ваші дані до акаунту", { duration: 3000 });
+					} }); },
+		COURT_DECISION: (p: Extract<PopupKind, { type: 'COURT_DECISION' }>) =>
+		{ createCourtDecision.mutate({ accidentId: p.accidentId, decision: p.decision },
+			{ onSuccess: () => {
+					setPopup(null);
+					toast.success("Успішно створено");
+				} }); },
+	} as const;
 
 	return (
 		<div className="p-4">
 			<h1 className="text-2xl font-bold mb-4">ДТП</h1>
+			<>
+				<Popup
+					error={popup?.error ?? null}
+					open={!!popup}
+					onCancel={() => { setPopup(null); }}
+					onSubmit={() => {
+						if (!popup) return;
+
+						const keyMap = {
+							ADMINISTRATIVE_DECISION: 'decision',
+							VIOLATION: 'violation',
+							INSURANCE_EVALUATION: 'conclusion',
+							INSURANCE_PAYMENT: 'payment',
+							MEDICAL_REPORT: 'report',
+							COURT_DECISION: 'decision'
+						} as const;
+
+						const field = keyMap[popup.type];
+						
+						 
+						// @ts-expect-error Everything is fine... 
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+						const value = popup[field];
+
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+						if (!value || value.trim() === '') {
+							// @ts-expect-error I'm tired of all these ts errors, to be honest
+							updatePopup('error', 'Поле не може бути порожнім');
+							return;
+						}
+						// @ts-expect-error And another one
+						submitHandlers[popup.type](popup); }}
+				>
+					{popup?.type === 'ADMINISTRATIVE_DECISION' && (
+						<PopupField label="Рішення">
+							<input
+								className="border p-2 rounded w-full"
+								value={popup.decision}
+								onChange={event_ => { // @ts-expect-error I hate typescript
+									updatePopup('decision', event_.target.value); }}
+							/>
+						</PopupField>
+					)}
+					{popup?.type === 'VIOLATION' && (
+						<PopupField label="Порушення">
+							<input
+								className="border p-2 rounded w-full"
+								value={popup.violation}
+								onChange={event_ => { // @ts-expect-error I hate typescript
+									updatePopup('violation', event_.target.value); }}
+							/>
+						</PopupField>
+					)}
+					{popup?.type === 'INSURANCE_EVALUATION' && (
+						<PopupField label="Оцінка">
+							<input
+								className="border p-2 rounded w-full"
+								value={popup.conclusion}
+								onChange={event_ => { // @ts-expect-error I hate typescript
+									updatePopup('conclusion', event_.target.value); }}
+							/>
+						</PopupField>
+					)}
+					{popup?.type === 'INSURANCE_PAYMENT' && (
+						<PopupField label="Виплата (у форматі 12.34)">
+							<input
+								className="border p-2 rounded w-full"
+								value={popup.payment}
+								onChange={event_ => { // @ts-expect-error I hate typescript
+									updatePopup('payment', event_.target.value); }}
+							/>
+						</PopupField>
+					)}
+					{popup?.type === 'MEDICAL_REPORT' && (
+					<PopupField label="Висновок">
+						<input
+							className="border p-2 rounded w-full"
+							value={popup.report}
+							onChange={event_ => { // @ts-expect-error I hate typescript
+								updatePopup('report', event_.target.value); }}
+						/>
+					</PopupField>
+					)}
+					{popup?.type === 'COURT_DECISION' && (
+						<PopupField label="Рішення">
+							<input
+								className="border p-2 rounded w-full"
+								value={popup.decision}
+								onChange={event_ => { // @ts-expect-error I hate typescript
+									updatePopup('decision', event_.target.value); }}
+							/>
+						</PopupField>
+					)}
+				</Popup>
+			</>
 			<div className="grid grid-cols-4 gap-4 mb-4">
 				<div className="flex flex-col">
 					<input
@@ -245,20 +458,26 @@ export function AccidentsListPage(): ReactElement {
 				</div>
 			</div>
 
-			<RoundedButton variant='blue' onClick={applyFilters}>
-				Пошук
-			</RoundedButton>
+			<div className="flex justify-between items-start">
+				<div>
+					<RoundedButton variant='blue' onClick={applyFilters}>
+						Пошук
+					</RoundedButton>
 
-			<div className="flex gap-4 mb-4 mt-4 items-center">
-				<RoundedButton onClick={previousPage}>
-					&lt;
-				</RoundedButton>
+					<div className="flex gap-4 mb-4 mt-4 items-center">
+						<RoundedButton onClick={previousPage}>
+							&lt;
+						</RoundedButton>
 
-				<span>Сторінка {applied.pageIndex + 1}</span>
+						<span>Сторінка {applied.pageIndex + 1}</span>
 
-				<RoundedButton onClick={nextPage}>
-					&gt;
-				</RoundedButton>
+						<RoundedButton onClick={nextPage}>
+							&gt;
+						</RoundedButton>
+					</div>
+				</div>
+				{userRole === ApplicationRole.MEDIC && <MedicLinkAccount />}
+				{userRole === ApplicationRole.POLICE && <PoliceLinkAccount />}
 			</div>
 
 			<table className="w-full table-auto border border-gray-300 rounded-lg overflow-hidden shadow-sm">
@@ -317,7 +536,11 @@ export function AccidentsListPage(): ReactElement {
 							</td>
 							{accidentCourtDecisions && (
 								<td className="px-4 py-2">{accidentCourtDecisions.length > 0 ? accidentCourtDecisions.map((cd) =>
-									cd.decision).join(", ") : userRole === ApplicationRole.COURT ? <RoundedButton variant="blue">Створити</RoundedButton> : '-'}</td>
+									cd.decision).join(", ") : userRole === ApplicationRole.COURT ? <RoundedButton
+									variant="blue"
+									onClick={() =>
+									{ setPopup({ type: 'COURT_DECISION', accidentId: accumulator.id, decision: '', error: null }) }}
+								>Створити</RoundedButton> : '-'}</td>
 							)}
 						</tr>
 
@@ -370,21 +593,49 @@ export function AccidentsListPage(): ReactElement {
 													{userRole === ApplicationRole.POLICE && (
 														<div className="flex flex-col space-y-2">
 															{p.accidentRole === 'CULPRIT' && personAdministrativeDecision === undefined && (
-																<RoundedButton variant="blue">Адмін. рішення</RoundedButton>
+																<RoundedButton
+																	variant="blue"
+																	onClick={() => {
+																		setPopup({ type: 'ADMINISTRATIVE_DECISION', accidentId: accumulator.id, personId: p.person.id, decision: '', error: null });
+																	}}
+																>Адмін. рішення</RoundedButton>
 															)}
-															<RoundedButton variant="blue">Порушення</RoundedButton>
+															<RoundedButton
+																variant="blue"
+																onClick={() => {
+																	setPopup({ type: 'VIOLATION', accidentId: accumulator.id, personId: p.person.id, violation: '', error: null });
+																}}
+															>Порушення</RoundedButton>
 														</div>
 														)}
 													{userRole === ApplicationRole.INSURANCE && (
 														<div className="flex flex-col space-y-2">
-															{personInsuranceEvaluation === undefined && (
-																<RoundedButton variant="blue">Страх. оцінку</RoundedButton>
+															{personInsuranceEvaluation === undefined && personVehicle !== undefined && (
+																<RoundedButton
+																	variant="blue"
+																	onClick={() => {
+																		setPopup({ type: 'INSURANCE_EVALUATION', accidentId: accumulator.id, vehicleId: personVehicle.id, conclusion: '', error: null });
+																	}}
+																>Страх. оцінку</RoundedButton>
 															)}
-															<RoundedButton variant="blue">Страх. виплату</RoundedButton>
+															{personInsuranceEvaluation !== undefined && (
+																<RoundedButton
+																	variant="blue"
+																	onClick={() => {
+																		setPopup({ type: 'INSURANCE_PAYMENT', insuranceEvaluationId: personInsuranceEvaluation.id, personId: p.person.id, payment: '', error: null });
+																	}}
+																>Страх. виплату</RoundedButton>
+															)}
+
 														</div>
 													)}
 													{userRole === ApplicationRole.MEDIC && (
-														<RoundedButton variant="blue">Мед. висновок</RoundedButton>
+														<RoundedButton
+															variant="blue"
+															onClick={() => {
+																setPopup({ type: 'MEDICAL_REPORT', accidentId: accumulator.id, personId: p.person.id, report: '', error: createMedicalReport.isError ? "Виникла помилка" : null });
+															}}
+														>Мед. вирок</RoundedButton>
 													)}
 												</div>
 											</div>
@@ -461,8 +712,8 @@ export function AccidentsListPage(): ReactElement {
 					</React.Fragment>
 				);
 			})}
-
-			</tbody> </table>
+			</tbody>
+			</table>
 		</div>
 	);
 }
