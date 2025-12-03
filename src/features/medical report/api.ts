@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { MedicalReport } from "./types.ts";
 
 const createMedicalReport = async (medicalReport: MedicalReport): Promise<void> => {
-	await apiClient.post('/insurance/evaluations', medicalReport);
+	await apiClient.post('/medical-reports', medicalReport);
 }
 
 export const useCreateMedicalReport = (): UseMutationResult<void, Error, MedicalReport, unknown> => {
