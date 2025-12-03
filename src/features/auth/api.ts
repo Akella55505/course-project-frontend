@@ -1,4 +1,4 @@
-import type { UseQueryResult } from "@tanstack/react-query";
+import { useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { useMutation, type UseMutationResult, useQuery } from "@tanstack/react-query";
 import apiClient from "../../lib/axios";
 import { useNavigate } from "@tanstack/react-router";
@@ -49,10 +49,12 @@ export const useLogin = (): UseMutationResult<
 	LoginInput
 > => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: login,
 		onSuccess: async () => {
+			queryClient.removeQueries({ queryKey: ['role'] })
 			const roleResult = await getRole();
 			const role = roleResult["role"];
 

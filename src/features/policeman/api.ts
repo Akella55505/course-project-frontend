@@ -13,6 +13,6 @@ const getIsRegistered = async (): Promise<Response> => {
 
 export const usePoliceIsRegistered = (): UseQueryResult<Response, Error> =>
     useQuery<Response>({
-        queryKey: ['accidents'],
+        queryKey: ['police-is-registered'],
         queryFn: () => getIsRegistered(),
     });
