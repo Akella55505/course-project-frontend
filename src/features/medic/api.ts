@@ -16,7 +16,6 @@ const getIsRegistered = async (): Promise<Response> => {
 }
 
 const setMedicEmail = async (medicId: string): Promise<void> => {
-	console.log(medicId);
 	await apiClient.patch(`/medics`, null, { params: { medicId } });
 }
 
