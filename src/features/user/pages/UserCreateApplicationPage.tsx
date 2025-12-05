@@ -7,14 +7,14 @@ import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { toast } from "react-hot-toast";
 
 const schema = z.object({
-	name: z.string().min(1, "Введіть ім'я"),
-	surname: z.string().min(1, "Введіть прізвище"),
-	patronymic: z.string().min(1, "Введіть по-батькові"),
+	name: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "Ім'я має починатися з великої літери і бути написаним українською"),
+	surname: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "Прізвище має починатися з великої літери і бути написаним українською"),
+	patronymic: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "По-батькові має починатися з великої літери і бути написаним українською"),
 	passportDetails: z.object({
-		id: z.string().min(1, "Введіть id паспорту"),
-		series: z.string().min(1, "Введіть серію паспорту"),
+		id: z.string().regex(new RegExp(/^\d{6}$/), "ID паспорту має складатися з 6 цифр"),
+		series: z.string().min(1, "Введіть серію паспорту").regex(new RegExp(/^[А-ЯҐЄІЇ]{2}$/), "Серія паспорту має складатися з двох великих літер"),
 	}),
-	licensePlate: z.string().length(8, "Номерний знак має бути рівно 8 символів"),
+	licensePlate: z.string().min(2, "Введіть номерний знак"),
 	date: z.string().min(1, "Укажіть дату"),
 	time: z.string().min(1, "Укажіть час"),
 	addressStreet: z.string().min(1, "Введіть вулицю"),
