@@ -229,7 +229,7 @@ export function AccidentsListPage(): ReactElement {
 
 	const submitHandlers = {
 		ADMINISTRATIVE_DECISION: (p: Extract<PopupKind, { type: 'ADMINISTRATIVE_DECISION' }>): void =>
-			{ createAdministrativeDecision.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, decision: p.decision },
+			{ createAdministrativeDecision.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, decision: p.decision.trim() },
 				{ onSuccess: () => {
 						setPopup(null);
 						toast.success("Успішно створено");
@@ -238,7 +238,7 @@ export function AccidentsListPage(): ReactElement {
 						toast.error("Виникла помилка. Прив'яжіть ваші дані до акаунту", { duration: 3000 });
 					} }); },
 		VIOLATION: (p: Extract<PopupKind, { type: 'VIOLATION' }>) =>
-			{ createViolation.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, violation: p.violation },
+			{ createViolation.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, violation: p.violation.trim() },
 				{ onSuccess: () => {
 						setPopup(null);
 						toast.success("Успішно створено");
@@ -249,7 +249,7 @@ export function AccidentsListPage(): ReactElement {
 					id: 0,
 					accidentId: p.accidentId,
 					vehicleId: p.vehicleId,
-					conclusion: p.conclusion,
+					conclusion: p.conclusion.trim(),
 				},
 				{ onSuccess: () => {
 					setPopup(null);
@@ -263,7 +263,7 @@ export function AccidentsListPage(): ReactElement {
 						toast.success("Успішно створено");
 					}}); },
 		MEDICAL_REPORT: (p: Extract<PopupKind, { type: 'MEDICAL_REPORT' }>) =>
-			{ createMedicalReport.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, report: p.report },
+			{ createMedicalReport.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, report: p.report.trim() },
 				{ onSuccess: () => {
 						setPopup(null);
 						toast.success("Успішно створено");
@@ -272,7 +272,7 @@ export function AccidentsListPage(): ReactElement {
 						toast.error("Виникла помилка. Прив'яжіть ваші дані до акаунту", { duration: 3000 });
 					} }); },
 		COURT_DECISION: (p: Extract<PopupKind, { type: 'COURT_DECISION' }>) =>
-		{ createCourtDecision.mutate({ accidentId: p.accidentId, decision: p.decision },
+		{ createCourtDecision.mutate({ accidentId: p.accidentId, decision: p.decision.trim() },
 			{ onSuccess: () => {
 					setPopup(null);
 					toast.success("Успішно створено");
