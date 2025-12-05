@@ -39,7 +39,7 @@ export function UserListPage(): ReactElement {
 
 	const dataFetchError = (): ReactElement => {
 		return (
-			<div className="min-h-screen flex items-center justify-center relative">
+			<div className="flex justify-center max-w-lg mx-auto bg-gray-50 p-8">
 				<Popup
 					error={setPersonEmail.isError ? "Персони немає в базі" : null}
 					open={open}
@@ -63,12 +63,16 @@ export function UserListPage(): ReactElement {
 					</PopupField>
 				</Popup>
 
-				<div className="flex flex-col items-center gap-6">
-					<h1 className="text-gray-500 text-2xl font-bold text-center">
+				<div className="flex flex-col items-center gap-6 bg-white p-8 rounded-xl shadow-lg max-w-lg w-full text-center">
+					<h1 className="text-gray-800 text-2xl font-semibold">
 						НЕМАЄ ДАНИХ. СПРОБУЙТЕ ПРИВ'ЯЗАТИ АКАУНТ.
 					</h1>
 
-					<RoundedButton variant="blue" onClick={() => { setOpen(true); }}>
+					<RoundedButton
+						className="w-full text-lg font-medium py-3"
+						variant="blue"
+						onClick={() => { setOpen(true); }}
+					>
 						Прив'язати акаунт
 					</RoundedButton>
 				</div>
@@ -214,7 +218,7 @@ export function UserListPage(): ReactElement {
 									{!userInsurancePayments?.length && <div>—</div>}
 									{userInsurancePayments?.map((x) => (
 										<div key={x.id} className="mb-1">
-											{x.payment}
+											{x.payment / 100 + " UAH"}
 										</div>
 									))}
 								</div>
