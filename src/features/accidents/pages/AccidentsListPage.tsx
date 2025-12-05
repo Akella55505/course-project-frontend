@@ -190,7 +190,6 @@ export function AccidentsListPage(): ReactElement {
 
 	// @ts-expect-error Always defined
 	const userRole = getRole.data["role"];
-	console.log(userRole);
 
 	const MedicLinkAccount = (): ReactElement | null => {
 		const { data } = useMedicIsRegistered();
@@ -536,7 +535,7 @@ export function AccidentsListPage(): ReactElement {
 							</td>
 							{accidentCourtDecisions && (
 								<td className="px-4 py-2">{accidentCourtDecisions.length > 0 ? accidentCourtDecisions.map((cd) =>
-									cd.decision).join(", ") : userRole === ApplicationRole.COURT ? <RoundedButton
+									cd.decision).join(", ") : userRole === ApplicationRole.COURT && accumulator.considerationStatus === 'SENT' ? <RoundedButton
 									variant="blue"
 									onClick={() =>
 									{ setPopup({ type: 'COURT_DECISION', accidentId: accumulator.id, decision: '', error: null }) }}
@@ -587,7 +586,8 @@ export function AccidentsListPage(): ReactElement {
 												</div>
 
 												<div className="flex flex-col space-y-2">
-													{userRole !== ApplicationRole.COURT && (
+													{!((userRole === ApplicationRole.COURT) ||
+														(userRole === ApplicationRole.INSURANCE && personInsuranceEvaluation === undefined)) && (
 														<strong className="self-center">Створити</strong>
 													)}
 													{userRole === ApplicationRole.POLICE && (
@@ -626,7 +626,6 @@ export function AccidentsListPage(): ReactElement {
 																	}}
 																>Страх. виплату</RoundedButton>
 															)}
-
 														</div>
 													)}
 													{userRole === ApplicationRole.MEDIC && (
