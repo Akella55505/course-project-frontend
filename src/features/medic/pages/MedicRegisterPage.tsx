@@ -15,7 +15,7 @@ export function MedicRegisterPage(): ReactElement {
 	const createMedic = useCreateMedic();
 
 	const fioPattern = /^[A-Za-zА-Яа-яЁёІіЇїЄєҐґ'-]+$/;
-	const isValid = (s: string): boolean => fioPattern.test(s.trim());
+	const isValid = (s: string): boolean => fioPattern.test(s);
 
 	const updateForm = (k: "medicId" | "name" | "surname" | "patronymic", v: string): void =>
 	{ setForm({ ...form, [k]: v }); };
