@@ -20,11 +20,13 @@ apiClient.interceptors.response.use(
 			if (window.location.pathname === '/login' || window.location.pathname === '/register') return Promise.reject(error);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			if (error.response?.status === 401 || error.response?.data.errorMessage === 'Authorization header not provided') {
+				alert("Виникла помилка. Зайдіть в акаунт або зареєструйтесь");
 				void logout();
-				window.location.href = '/'
+				window.location.href = '/';
 			}
 			if (error.response?.status === 403) {
-				window.location.href = '/'
+				alert("Доступ заборонено");
+				window.location.href = '/';
 			}
 			return Promise.reject(error);
 		}
