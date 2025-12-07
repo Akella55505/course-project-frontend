@@ -53,7 +53,7 @@ export function AppLayout(): ReactElement {
 								</Link>
 								<Link
 									className="[&.active]:font-bold hover:underline"
-									to="/applications"
+									to="/user-applications"
 								>
 									Заяви
 								</Link>
