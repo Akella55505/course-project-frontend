@@ -22,10 +22,11 @@ export function AccidentsStatisticsPage(): ReactElement {
 			<div className="max-w-sm mb-4">
 				<select
 					className="border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-gray-400"
-					defaultValue={location.pathname.split("/statistics")[1]}
+					value={location.pathname.split("/statistics")[1]}
 					onChange={handleChange}
 				>
-					<option value="/">Загальна</option>
+					<option disabled value="">Оберіть вид</option>
+					<option value="/main">Загальна</option>
 					<option value="/streets">За вулицями</option>
 					<option value="/previous-quarter">За минулий квартал</option>
 				</select>
