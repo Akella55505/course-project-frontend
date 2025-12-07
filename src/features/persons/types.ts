@@ -5,6 +5,7 @@ export type Person = {
 	patronymic: string;
 	passportDetails: PassportDetails;
 	driverLicense: DriverLicense;
+	email: string;
 };
 
 export type PassportDetails = {

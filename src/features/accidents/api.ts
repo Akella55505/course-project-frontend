@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';
 import type {
 	Accident,
-	AccidentDataDto,
+	AccidentDataDto, AccidentReportDto,
 	AccidentStatisticsDto,
 	AccidentStatisticsPreviousQuarterDto,
 	AccidentStatisticsStreetsDto,
@@ -24,6 +24,16 @@ type QueryParameters = Partial<{
 	type: string
 }> & { pageIndex: number }
 
+type QueryParametersReport = Partial<{
+	startDate: string
+	endDate: string
+	startTime: string
+	endTime: string
+	addressStreet: string
+	addressNumber: string
+	type: string
+}>
+
 const getAccidents = async (parameters: QueryParameters): Promise<AccidentDataDto> => {
 	const response = await apiClient.get('/accidents', { params: parameters });
 	return response.data as AccidentDataDto;
@@ -42,6 +52,11 @@ const getStatisticsStreets = async (pageIndex: number): Promise<Array<AccidentSt
 const getStatisticsPreviousQuarter = async (pageIndex: number): Promise<Array<AccidentStatisticsPreviousQuarterDto>> => {
 	const response = await apiClient.get("/accidents/statistics/previous-quarter", { params: { pageIndex } });
 	return response.data as Array<AccidentStatisticsPreviousQuarterDto>;
+}
+
+const getReport = async (parameters: QueryParametersReport): Promise<AccidentReportDto> => {
+	const response = await apiClient.get('/accidents/report', { params: parameters });
+	return response.data as AccidentReportDto;
 }
 
 const createAccident = async (newAccident: Omit<Accident, 'id'>): Promise<Accident> => {
@@ -75,6 +90,12 @@ export const useStatisticsPreviousQuarter = (pageIndex: number): UseQueryResult<
 		queryKey: ['statistics-previous-quarter', pageIndex],
 		queryFn: () => getStatisticsPreviousQuarter(pageIndex),
 		enabled: pageIndex !== undefined,
+	});
+
+export const useReport = (parameters: QueryParametersReport): UseQueryResult<AccidentReportDto, Error> =>
+	useQuery<AccidentReportDto>({
+		queryKey: ['report', parameters],
+		queryFn: () => getReport(parameters),
 	});
 
 export const useCreateAccident = (): UseMutationResult<Accident, Error, Omit<Accident, "id">, unknown> => {

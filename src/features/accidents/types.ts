@@ -75,3 +75,26 @@ export type AccidentStatisticsPreviousQuarterDto = {
 	victimCount: number;
 	paymentAmount: number;
 }
+
+export type AccidentReportDto = {
+	reportCount: number;
+	reportStreet: string;
+	streetCount: number;
+	reportCauses: string;
+	causesCount: number;
+	reportType: string;
+	typeCount: number;
+	reportDaytime: keyof typeof Daytime;
+	daytimeCount: number;
+	reportViolation: string;
+	violationCount: number;
+	reportDriver: Person;
+	driverCount: number;
+}
+
+export enum Daytime {
+	MORNING = 'Ранок',
+	AFTERNOON = 'День',
+	EVENING = 'Вечір',
+	NIGHT = 'Ніч'
+}
