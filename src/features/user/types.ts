@@ -1,6 +1,7 @@
 import type { PassportDetails } from "../persons/types";
 
 export type UserApplication = {
+	id: number;
 	name: string;
 	surname: string;
 	patronymic: string;
@@ -10,4 +11,12 @@ export type UserApplication = {
 	time: string;
 	addressStreet: string;
 	addressNumber: string;
+	applicationStatus: keyof typeof ApplicationStatus;
+	senderEmail: string;
+}
+
+export enum ApplicationStatus {
+	IN_REVIEW = "На розгляді",
+	DENIED = "Відхилено",
+	PROCESSED = "Оброблено",
 }
