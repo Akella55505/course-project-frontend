@@ -51,3 +51,27 @@ export type AccidentDataDto = {
 	violationData?: Array<Violation>
 	person?: Person
 }
+
+export type AccidentStatisticsDto = {
+	accidentAmount: number;
+	causes: string;
+	rank: number;
+}
+
+export type AccidentStatisticsStreetsDto = {
+	street: string;
+	violationCount: number;
+	topViolation: string;
+	accidentCount: number;
+	accidentCountPedestrian: number;
+	violationCountRank: number;
+	accidentCountRank: number;
+	accidentCountPedestrianRank: number;
+}
+
+export type AccidentStatisticsPreviousQuarterDto = {
+	accidentType: string;
+	accidentCount: number;
+	victimCount: number;
+	paymentAmount: number;
+}

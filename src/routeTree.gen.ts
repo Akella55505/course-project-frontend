@@ -10,16 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VehiclesRouteImport } from './routes/vehicles'
+import { Route as UserApplicationsRouteImport } from './routes/user-applications'
 import { Route as UserRouteImport } from './routes/user'
+import { Route as StatisticsRouteImport } from './routes/statistics'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PersonsRouteImport } from './routes/persons'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccidentsRouteImport } from './routes/accidents'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StatisticsIndexRouteImport } from './routes/statistics/index'
 import { Route as VehiclesNewRouteImport } from './routes/vehicles.new'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles/$vehicleId'
 import { Route as UserFormRouteImport } from './routes/user_.form'
+import { Route as StatisticsStreetsRouteImport } from './routes/statistics/streets'
+import { Route as StatisticsPreviousQuarterRouteImport } from './routes/statistics/previous-quarter'
 import { Route as RegisterPoliceRouteImport } from './routes/register_.police'
 import { Route as RegisterMedicRouteImport } from './routes/register_.medic'
 import { Route as PersonsNewRouteImport } from './routes/persons.new'
@@ -30,9 +36,24 @@ const VehiclesRoute = VehiclesRouteImport.update({
   path: '/vehicles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UserApplicationsRoute = UserApplicationsRouteImport.update({
+  id: '/user-applications',
+  path: '/user-applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UserRoute = UserRouteImport.update({
   id: '/user',
   path: '/user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatisticsRoute = StatisticsRouteImport.update({
+  id: '/statistics',
+  path: '/statistics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -65,6 +86,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatisticsIndexRoute = StatisticsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StatisticsRoute,
+} as any)
 const VehiclesNewRoute = VehiclesNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -80,6 +106,17 @@ const UserFormRoute = UserFormRouteImport.update({
   path: '/user/form',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatisticsStreetsRoute = StatisticsStreetsRouteImport.update({
+  id: '/streets',
+  path: '/streets',
+  getParentRoute: () => StatisticsRoute,
+} as any)
+const StatisticsPreviousQuarterRoute =
+  StatisticsPreviousQuarterRouteImport.update({
+    id: '/previous-quarter',
+    path: '/previous-quarter',
+    getParentRoute: () => StatisticsRoute,
+  } as any)
 const RegisterPoliceRoute = RegisterPoliceRouteImport.update({
   id: '/register_/police',
   path: '/register/police',
@@ -108,15 +145,21 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
+  '/report': typeof ReportRoute
+  '/statistics': typeof StatisticsRouteWithChildren
   '/user': typeof UserRoute
+  '/user-applications': typeof UserApplicationsRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/new': typeof AccidentsNewRoute
   '/persons/new': typeof PersonsNewRoute
   '/register/medic': typeof RegisterMedicRoute
   '/register/police': typeof RegisterPoliceRoute
+  '/statistics/previous-quarter': typeof StatisticsPreviousQuarterRoute
+  '/statistics/streets': typeof StatisticsStreetsRoute
   '/user/form': typeof UserFormRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
+  '/statistics/': typeof StatisticsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -125,15 +168,20 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
+  '/report': typeof ReportRoute
   '/user': typeof UserRoute
+  '/user-applications': typeof UserApplicationsRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/new': typeof AccidentsNewRoute
   '/persons/new': typeof PersonsNewRoute
   '/register/medic': typeof RegisterMedicRoute
   '/register/police': typeof RegisterPoliceRoute
+  '/statistics/previous-quarter': typeof StatisticsPreviousQuarterRoute
+  '/statistics/streets': typeof StatisticsStreetsRoute
   '/user/form': typeof UserFormRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
+  '/statistics': typeof StatisticsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,15 +191,21 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/persons': typeof PersonsRouteWithChildren
   '/register': typeof RegisterRoute
+  '/report': typeof ReportRoute
+  '/statistics': typeof StatisticsRouteWithChildren
   '/user': typeof UserRoute
+  '/user-applications': typeof UserApplicationsRoute
   '/vehicles': typeof VehiclesRouteWithChildren
   '/accidents/new': typeof AccidentsNewRoute
   '/persons/new': typeof PersonsNewRoute
   '/register_/medic': typeof RegisterMedicRoute
   '/register_/police': typeof RegisterPoliceRoute
+  '/statistics/previous-quarter': typeof StatisticsPreviousQuarterRoute
+  '/statistics/streets': typeof StatisticsStreetsRoute
   '/user_/form': typeof UserFormRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
+  '/statistics/': typeof StatisticsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,15 +216,21 @@ export interface FileRouteTypes {
     | '/login'
     | '/persons'
     | '/register'
+    | '/report'
+    | '/statistics'
     | '/user'
+    | '/user-applications'
     | '/vehicles'
     | '/accidents/new'
     | '/persons/new'
     | '/register/medic'
     | '/register/police'
+    | '/statistics/previous-quarter'
+    | '/statistics/streets'
     | '/user/form'
     | '/vehicles/$vehicleId'
     | '/vehicles/new'
+    | '/statistics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,15 +239,20 @@ export interface FileRouteTypes {
     | '/login'
     | '/persons'
     | '/register'
+    | '/report'
     | '/user'
+    | '/user-applications'
     | '/vehicles'
     | '/accidents/new'
     | '/persons/new'
     | '/register/medic'
     | '/register/police'
+    | '/statistics/previous-quarter'
+    | '/statistics/streets'
     | '/user/form'
     | '/vehicles/$vehicleId'
     | '/vehicles/new'
+    | '/statistics'
   id:
     | '__root__'
     | '/'
@@ -196,15 +261,21 @@ export interface FileRouteTypes {
     | '/login'
     | '/persons'
     | '/register'
+    | '/report'
+    | '/statistics'
     | '/user'
+    | '/user-applications'
     | '/vehicles'
     | '/accidents/new'
     | '/persons/new'
     | '/register_/medic'
     | '/register_/police'
+    | '/statistics/previous-quarter'
+    | '/statistics/streets'
     | '/user_/form'
     | '/vehicles/$vehicleId'
     | '/vehicles/new'
+    | '/statistics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -214,7 +285,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PersonsRoute: typeof PersonsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
+  ReportRoute: typeof ReportRoute
+  StatisticsRoute: typeof StatisticsRouteWithChildren
   UserRoute: typeof UserRoute
+  UserApplicationsRoute: typeof UserApplicationsRoute
   VehiclesRoute: typeof VehiclesRouteWithChildren
   RegisterMedicRoute: typeof RegisterMedicRoute
   RegisterPoliceRoute: typeof RegisterPoliceRoute
@@ -230,11 +304,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/user-applications': {
+      id: '/user-applications'
+      path: '/user-applications'
+      fullPath: '/user-applications'
+      preLoaderRoute: typeof UserApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/user': {
       id: '/user'
       path: '/user'
       fullPath: '/user'
       preLoaderRoute: typeof UserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/statistics': {
+      id: '/statistics'
+      path: '/statistics'
+      fullPath: '/statistics'
+      preLoaderRoute: typeof StatisticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -279,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/statistics/': {
+      id: '/statistics/'
+      path: '/'
+      fullPath: '/statistics/'
+      preLoaderRoute: typeof StatisticsIndexRouteImport
+      parentRoute: typeof StatisticsRoute
+    }
     '/vehicles/new': {
       id: '/vehicles/new'
       path: '/new'
@@ -299,6 +401,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/user/form'
       preLoaderRoute: typeof UserFormRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/statistics/streets': {
+      id: '/statistics/streets'
+      path: '/streets'
+      fullPath: '/statistics/streets'
+      preLoaderRoute: typeof StatisticsStreetsRouteImport
+      parentRoute: typeof StatisticsRoute
+    }
+    '/statistics/previous-quarter': {
+      id: '/statistics/previous-quarter'
+      path: '/previous-quarter'
+      fullPath: '/statistics/previous-quarter'
+      preLoaderRoute: typeof StatisticsPreviousQuarterRouteImport
+      parentRoute: typeof StatisticsRoute
     }
     '/register_/police': {
       id: '/register_/police'
@@ -354,6 +470,22 @@ const PersonsRouteChildren: PersonsRouteChildren = {
 const PersonsRouteWithChildren =
   PersonsRoute._addFileChildren(PersonsRouteChildren)
 
+interface StatisticsRouteChildren {
+  StatisticsPreviousQuarterRoute: typeof StatisticsPreviousQuarterRoute
+  StatisticsStreetsRoute: typeof StatisticsStreetsRoute
+  StatisticsIndexRoute: typeof StatisticsIndexRoute
+}
+
+const StatisticsRouteChildren: StatisticsRouteChildren = {
+  StatisticsPreviousQuarterRoute: StatisticsPreviousQuarterRoute,
+  StatisticsStreetsRoute: StatisticsStreetsRoute,
+  StatisticsIndexRoute: StatisticsIndexRoute,
+}
+
+const StatisticsRouteWithChildren = StatisticsRoute._addFileChildren(
+  StatisticsRouteChildren,
+)
+
 interface VehiclesRouteChildren {
   VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
   VehiclesNewRoute: typeof VehiclesNewRoute
@@ -375,7 +507,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PersonsRoute: PersonsRouteWithChildren,
   RegisterRoute: RegisterRoute,
+  ReportRoute: ReportRoute,
+  StatisticsRoute: StatisticsRouteWithChildren,
   UserRoute: UserRoute,
+  UserApplicationsRoute: UserApplicationsRoute,
   VehiclesRoute: VehiclesRouteWithChildren,
   RegisterMedicRoute: RegisterMedicRoute,
   RegisterPoliceRoute: RegisterPoliceRoute,
