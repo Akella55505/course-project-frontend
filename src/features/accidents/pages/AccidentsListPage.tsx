@@ -209,6 +209,7 @@ export function AccidentsListPage(): ReactElement {
 		const { data } = usePoliceIsRegistered();
 		return !data?.isRegistered ? (
 			<RoundedButton
+				className="w-full"
 				variant="blue"
 				onClick={async () => {
 					await navigate({ to: "/register/police" });
@@ -476,7 +477,19 @@ export function AccidentsListPage(): ReactElement {
 					</div>
 				</div>
 				{userRole === ApplicationRole.MEDIC && <MedicLinkAccount />}
-				{userRole === ApplicationRole.POLICE && <PoliceLinkAccount />}
+				{userRole === ApplicationRole.POLICE && (
+					<div className="flex flex-col gap-4 items-center">
+						<PoliceLinkAccount />
+						<RoundedButton
+							className="w-full"
+							variant="blue"
+							onClick={async () => {
+								await navigate({ to: "/accidents/new" });
+							}}
+						>
+							Зареєструвати ДТП
+						</RoundedButton>
+					</div>)}
 			</div>
 
 			<table className="w-full table-auto border border-gray-300 rounded-lg overflow-hidden shadow-sm">
