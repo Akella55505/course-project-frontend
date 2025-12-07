@@ -1,5 +1,4 @@
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
-// eslint-disable-next-line no-duplicate-imports
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';

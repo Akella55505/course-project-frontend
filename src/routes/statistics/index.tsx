@@ -1,6 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { AccidentsStatisticsMainPage } from "../../features/accidents/pages/statistics/AccidentsStatisticsMainPage.tsx";
+import { createFileRoute } from "@tanstack/react-router";
+import type { ReactElement } from "react";
 
-export const Route = createFileRoute('/statistics/')({
-  component: AccidentsStatisticsMainPage,
-})
+function RouteComponent(): ReactElement {
+	return <h1 className="flex justify-center text-gray-800 text-2xl font-semibold">Оберіть вид статистики</h1>;
+}
+
+export const Route = createFileRoute("/statistics/")({
+	component: RouteComponent,
+});
