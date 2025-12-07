@@ -215,7 +215,7 @@ export function AccidentsStatisticsMainPage(): ReactElement {
 				<tbody className="divide-y  divide-x divide-gray-300">
 				{statisticsData.map((accumulator) => {
 					return (
-						<React.Fragment key={accumulator.rank}>
+						<React.Fragment key={accumulator.causes}>
 							<tr className="border-b hover:bg-gray-50 divide-x divide-gray-300">
 								<td className="px-4 py-2">{accumulator.rank}</td>
 								<td className="px-4 py-2">{accumulator.causes}</td>
