@@ -6,14 +6,14 @@ import { loadingAnimation } from "../../../../common/elements.tsx";
 import { z } from "zod";
 import { RoundedButton } from "../../../../components/ui/RoundedButton.tsx";
 
-const accidentSchema = z.object({
+const statisticsSchema = z.object({
 	startDate: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Введіть дату в форматі РРРР-ММ-ДД").or(z.literal('')),
 	endDate: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Введіть дату в форматі РРРР-ММ-ДД").or(z.literal('')),
 	startTime: z.string().regex(new RegExp("^\\d{2}:\\d{2}$"), "Введіть час у форматі ГГ:ХХ").or(z.literal('')),
 	endTime: z.string().regex(new RegExp("^\\d{2}:\\d{2}$"), "Введіть час у форматі ГГ:ХХ").or(z.literal('')),
 	addressStreet: z.string().min(2, 'Назва вулиці занадто коротка').or(z.literal('')),
 	addressNumber: z.string().optional().or(z.number()),
-	type: z.string(),
+	type: z.string().min(4, 'Тип занадто короткий').or(z.literal('')),
 });
 
 export function AccidentsStatisticsMainPage(): ReactElement {
@@ -61,7 +61,7 @@ export function AccidentsStatisticsMainPage(): ReactElement {
 			type: draft.type
 		};
 
-		const result = accidentSchema.safeParse(prepared);
+		const result = statisticsSchema.safeParse(prepared);
 
 		if (!result.success) {
 			const flat = result.error.flatten().fieldErrors;
