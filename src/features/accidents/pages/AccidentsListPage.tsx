@@ -516,6 +516,11 @@ export function AccidentsListPage(): ReactElement {
 				<tbody className="divide-y  divide-x divide-gray-300">
 				{accidents.map((accumulator) => {
 					const accidentPersons = persons.filter((p) => p.accidentId === accumulator.id);
+					const sortedAccidentPersons = accidentPersons.slice().sort((a, b) => {
+						if (a.accidentRole === 'CULPRIT') return -1;
+						if (b.accidentRole === 'CULPRIT') return 1;
+						return 0;
+					});
 					const accidentCourtDecisions = courtDecisions?.filter((cd) => cd.accidentId === accumulator.id);
 					return (
 					<React.Fragment key={accumulator.id}>
@@ -557,7 +562,7 @@ export function AccidentsListPage(): ReactElement {
 						</tr>
 
 						{expandedAccidents.has(accumulator.id) &&
-							accidentPersons.map((p) => {
+							sortedAccidentPersons.map((p) => {
 								const personVehicle = vehicles?.find((v) =>
 									v.personId === p.person.id &&
 									accidentVehicle?.some((av) => av.accidentId === accumulator.id && av.vehicleId === v.id)
@@ -581,9 +586,6 @@ export function AccidentsListPage(): ReactElement {
 										ip.personId === p.person.id && ip.insuranceEvaluationId === personInsuranceEvaluation.id
 									)
 									: undefined;
-								console.log(!((userRole === ApplicationRole.COURT) ||
-									(userRole === ApplicationRole.INSURANCE && (personInsuranceEvaluation === undefined || personInsurancePayment !== undefined))));
-
 
 								return (
 									<tr key={p.person.id} className="bg-gray-50 hover:bg-gray-100">
