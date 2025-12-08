@@ -2,11 +2,14 @@ import type { ReactElement} from "react";
 import { useState } from "react";
 import { useUpdateUserApplication, useUserApplications } from "../api.ts";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
+import { loadingAnimation } from "../../../common/elements.tsx";
 
 export function UserApplicationsListPage(): ReactElement {
 	const [ pageIndex, setPageIndex ] = useState<number>(0);
 	const applications = useUserApplications(pageIndex);
 	const updateApplication = useUpdateUserApplication();
+
+	if (applications.isLoading) return loadingAnimation();
 
 	const applicationsData = applications.data;
 	const dataIsPresent = applicationsData !== undefined && applicationsData.length > 0;
