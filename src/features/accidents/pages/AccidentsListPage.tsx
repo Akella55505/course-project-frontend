@@ -576,11 +576,14 @@ export function AccidentsListPage(): ReactElement {
 										ie.vehicleId === personVehicle.id && ie.accidentId === accumulator.id
 									)
 									: undefined;
-								const personInsurancePayments = personVehicle
-									? insurancePayments?.filter((ip) =>
-										ip.personId === p.person.id && ip.insuranceEvaluationId === personInsuranceEvaluation?.id
+								const personInsurancePayment = personInsuranceEvaluation
+									? insurancePayments?.find((ip) =>
+										ip.personId === p.person.id && ip.insuranceEvaluationId === personInsuranceEvaluation.id
 									)
 									: undefined;
+								console.log(!((userRole === ApplicationRole.COURT) ||
+									(userRole === ApplicationRole.INSURANCE && (personInsuranceEvaluation === undefined || personInsurancePayment !== undefined))));
+
 
 								return (
 									<tr key={p.person.id} className="bg-gray-50 hover:bg-gray-100">
@@ -600,7 +603,8 @@ export function AccidentsListPage(): ReactElement {
 
 												<div className="flex flex-col space-y-2">
 													{!((userRole === ApplicationRole.COURT) ||
-														(userRole === ApplicationRole.INSURANCE && personInsuranceEvaluation === undefined)) && (
+														(userRole === ApplicationRole.INSURANCE && (personVehicle === undefined || (
+															personInsuranceEvaluation !== undefined && personInsurancePayment !== undefined)))) && (
 														<strong className="self-center">Створити</strong>
 													)}
 													{userRole === ApplicationRole.POLICE && (
@@ -631,7 +635,7 @@ export function AccidentsListPage(): ReactElement {
 																	}}
 																>Страх. оцінку</RoundedButton>
 															)}
-															{personInsuranceEvaluation !== undefined && (
+															{personInsuranceEvaluation !== undefined && personInsurancePayment === undefined && (
 																<RoundedButton
 																	variant="blue"
 																	onClick={() => {
@@ -653,7 +657,7 @@ export function AccidentsListPage(): ReactElement {
 											</div>
 
 											{(personVehicle ||
-												(personInsurancePayments?.length ?? 0) > 0 ||
+												personInsurancePayment ||
 												personAdministrativeDecision ||
 												(personViolations?.length ?? 0) > 0 ||
 												(personMedicalReports?.length ?? 0) > 0) && (
@@ -676,13 +680,10 @@ export function AccidentsListPage(): ReactElement {
 															}
 														</div>
 													}
-													{personInsurancePayments && personInsurancePayments.length > 0 &&
+													{personInsurancePayment &&
 														<div>
-															<strong>Страхові виплати: </strong>
-															<ul className="list-disc list-inside">
-																{personInsurancePayments.map((ip) =>
-																	<li key={ip.id}>{ip.payment / 100} UAH</li>)}
-															</ul>
+															<strong>Страхова виплата: </strong>
+															{personInsurancePayment.payment / 100 + " UAH"}
 														</div>
 													}
 													{personAdministrativeDecision &&

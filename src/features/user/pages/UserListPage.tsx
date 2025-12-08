@@ -123,8 +123,8 @@ export function UserListPage(): ReactElement {
 					const userInsuranceEvaluation = insuranceEvaluations?.find(
 						(x) => x.accidentId === a.id
 					);
-					const userInsurancePayments = userInsuranceEvaluation
-						? insurancePayments?.filter(
+					const userInsurancePayment = userInsuranceEvaluation
+						? insurancePayments?.find(
 								(x) => x.insuranceEvaluationId === userInsuranceEvaluation.id
 							)
 						: undefined;
@@ -215,12 +215,13 @@ export function UserListPage(): ReactElement {
 									<div className="font-semibold mb-2 text-gray-900">
 										Страхові виплати
 									</div>
-									{!userInsurancePayments?.length && <div>—</div>}
-									{userInsurancePayments?.map((x) => (
-										<div key={x.id} className="mb-1">
-											{x.payment / 100 + " UAH"}
-										</div>
-									))}
+									{!userInsurancePayment && <div>—</div>}
+									{userInsurancePayment && (
+										<>
+											{userInsurancePayment.payment / 100 + " UAH"}
+										</>
+										)
+									}
 								</div>
 
 								<div className="space-y-2 border-b border-gray-100 pb-4">
