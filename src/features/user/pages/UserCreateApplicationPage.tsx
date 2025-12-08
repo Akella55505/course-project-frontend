@@ -117,6 +117,7 @@ export function UserCreateApplicationPage(): ReactElement {
 
 				<input
 					className="border p-2 rounded"
+					max={(new Date()).toISOString().split('T')[0]}
 					type="date"
 					value={form.date}
 					onChange={event_ => { update("date", event_.target.value); }}
@@ -124,6 +125,7 @@ export function UserCreateApplicationPage(): ReactElement {
 
 				<input
 					className="border p-2 rounded"
+					max={form.date === (new Date()).toISOString().split('T')[0] ? (new Date()).getHours() + ":" + (new Date().getMinutes()) : undefined}
 					type="time"
 					value={form.time}
 					onChange={event_ => { update("time", event_.target.value); }}
