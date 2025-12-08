@@ -12,7 +12,7 @@ const getUserData = async (): Promise<AccidentDataDto> => {
 	return response.data as AccidentDataDto;
 }
 
-const createUserApplication = async (userApplication: UserApplication): Promise<void> => {
+const createUserApplication = async (userApplication: Partial<UserApplication>): Promise<void> => {
 	await apiClient.post('/applications', userApplication);
 }
 
@@ -31,7 +31,7 @@ export const useUserData = (): UseQueryResult<AccidentDataDto, Error> =>
 		queryFn: getUserData,
 	});
 
-export const useCreateUserApplication = (): UseMutationResult<void, Error, UserApplication> => {
+export const useCreateUserApplication = (): UseMutationResult<void, Error, Partial<UserApplication>> => {
 	const navigate = useNavigate();
 	
 	return useMutation({
