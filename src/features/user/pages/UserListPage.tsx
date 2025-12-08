@@ -101,6 +101,7 @@ export function UserListPage(): ReactElement {
 			<div className="flex items-center justify-between mb-4">
 				<h1 className="text-2xl font-bold">ДТП</h1>
 				<RoundedButton
+					variant="blue"
 					onClick={async () => {
 						await navigate({ to: "/user/form" });
 					}}
