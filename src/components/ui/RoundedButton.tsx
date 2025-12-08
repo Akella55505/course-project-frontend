@@ -2,7 +2,7 @@ import type { ReactNode, ButtonHTMLAttributes, ReactElement } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	children: ReactNode;
-	variant?: 'grey' | 'blue' | 'red';
+	variant?: 'grey' | 'blue' | 'red' | 'green';
 	size?: 'large' | 'default';
 }
 
@@ -23,6 +23,11 @@ export const RoundedButton = ({ children, className = "", variant = "grey", size
 		case "red":
 		{
 			variantClasses = "bg-red-600 hover:bg-red-700 text-white";
+			break;
+		}
+		case "green":
+		{
+			variantClasses = "bg-green-400 hover:bg-green-500 text-white";
 			break;
 		}
 	}
