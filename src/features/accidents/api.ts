@@ -2,8 +2,7 @@ import { type UseMutationResult, type UseQueryResult, useMutation, useQuery, use
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';
 import type {
-	Accident,
-	AccidentDataDto, AccidentReportDto,
+	AccidentDataDto, AccidentRegisterDto, AccidentReportDto,
 	AccidentStatisticsDto,
 	AccidentStatisticsPreviousQuarterDto,
 	AccidentStatisticsStreetsDto,
@@ -59,9 +58,8 @@ const getReport = async (parameters: QueryParametersReport): Promise<AccidentRep
 	return response.data as AccidentReportDto;
 }
 
-const createAccident = async (newAccident: Omit<Accident, 'id'>): Promise<Accident> => {
-	const response = await apiClient.post('/accidents', newAccident);
-	return response.data as Accident;
+const createAccident = async (newAccident: AccidentRegisterDto): Promise<void> => {
+	await apiClient.post("/accidents", newAccident);
 }
 
 export const useAccidents = (parameters: QueryParameters): UseQueryResult<AccidentDataDto, Error> =>
@@ -98,7 +96,7 @@ export const useReport = (parameters: QueryParametersReport): UseQueryResult<Acc
 		queryFn: () => getReport(parameters),
 	});
 
-export const useCreateAccident = (): UseMutationResult<Accident, Error, Omit<Accident, "id">, unknown> => {
+export const useCreateAccident = (): UseMutationResult<void, Error, AccidentRegisterDto, unknown> => {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 

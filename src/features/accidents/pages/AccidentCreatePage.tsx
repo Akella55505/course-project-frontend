@@ -1,120 +1,512 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCreateAccident } from '../api';
 import type { ReactElement } from "react";
-import type { Accident} from "../types.ts";
-import { AssessmentStatus, ConsiderationStatus } from "../types.ts";
+import type React from "react";
+import { useState } from "react";
+import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
+import { toast } from "react-hot-toast";
+import { AccidentRole } from "../../many-to-many/types.ts";
+import { Outlet } from "@tanstack/react-router";
+import type { PassportDetails, Person } from "../../persons/types.ts";
+import { usePerson } from "../../persons/api.ts";
+import { useVehicles } from "../../vehicles/api.ts";
+import type { Vehicle } from "../../vehicles/types.ts";
 
 const accidentSchema = z.object({
-	date: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Date must be in YYYY-MM-DD format"),
-	media: z.string().refine((value) => {
-		if (value === "") return true;
-		try {
-			JSON.parse(value);
-			return true;
-		} catch {
-			return false;
-		}
-	}, "Media has to be a JSON"),
-	location: z.string().min(3, 'Location is too short'),
-	causes: z.string().min(3, 'Causes are too short'),
-	considerationStatus: z.enum(ConsiderationStatus, "Invalid consideration status"),
-	assessmentStatus: z.enum(AssessmentStatus, "Invalid assessment status"),
-	type: z.string().min(3, 'Type is too short'),
-	time: z.string().regex(new RegExp("^\\d{2}:\\d{2}:\\d{2}$"), "Time must be in HH:MM:SS format"),
+	date: z.string().min(1, "Вкажіть дату"),
+	time: z.string().min(1, "Вкажіть час"),
+	addressStreet: z.string().min(1, "Введіть вулицю"),
+	addressNumber: z.string().min(1, "Введіть будівлю"),
+	causes: z.string().min(3, 'Причини занадто короткі'),
+	type: z.string().min(3, 'Тип занадто короткий'),
+	media: z.object({
+		photos: z.array(z.string()),
+		videos: z.array(z.string()),
+	}, "Невірно вказані медіа"),
+	personsRoles: z.array(z.record(z.string().regex(/^\d+$/), z.enum(Object.keys(AccidentRole)))).min(1, "Вкажіть як мінімум одну персону"),
+	vehicleIds: z.array(z.number()).min(1, "Вкажіть як мінімум один ТЗ"),
 });
 
-type AccidentFormData = z.infer<typeof accidentSchema>;
+const personSchema = z.object({
+	id: z.string().regex(new RegExp(/^\d{6}$/), "ID паспорту має складатися з 6 цифр"),
+	series: z.string().min(1, "Введіть серію паспорту").regex(new RegExp(/^[А-ЯҐЄІЇ]{2}$/), "Серія паспорту має складатися з двох великих літер"),
+});
+
+type FormState = {
+	date: string;
+	time: string;
+	addressStreet: string;
+	addressNumber: string;
+	causes: string;
+	type: string;
+	media: {
+		photos: Array<string>;
+		videos: Array<string>;
+	};
+	personsRoles: Array<Record<number, keyof typeof AccidentRole>>;
+	vehicleIds: Array<number>;
+};
+
+type PersonEntry =
+	| { type: "form"; data: PassportDetails }
+	| { type: "loaded"; data: Person, vehicles: Array<Vehicle> };
 
 export function AccidentCreatePage(): ReactElement {
-	const createAccidentMutation = useCreateAccident();
-
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-		reset,
-	} = useForm<AccidentFormData>({
-		resolver: zodResolver(accidentSchema),
+	const createAccident = useCreateAccident();
+	const [form, setForm] = useState<FormState>({
+		date: "",
+		time: "",
+		addressStreet: "",
+		addressNumber: "",
+		causes: "",
+		type: "",
+		media: { photos: [], videos: [] },
+		personsRoles: [],
+		vehicleIds: [],
 	});
+	const [persons, setPersons] = useState<Array<PersonEntry>>([]);
+	const [openIndex, setOpenIndex] = useState<number | null>(null);
+	const getPerson = usePerson();
+	const [error, setError] = useState("");
+	const [culpritIndex, setCulpritIndex] = useState<number | null>(null);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const getVehicles = useVehicles();
+	const [selectedVehicles, setSelectedVehicles] = useState<Array<number | null>>([]);
 
-	const onSubmit = (data: AccidentFormData): void => {
-		createAccidentMutation.mutate(data as unknown as Omit<Accident, "id">, {
-			onSuccess: () => { reset(); },
+	const addPerson = (): void => {
+		if (openIndex !== null) return;
+		const newIndex = persons.length;
+		setPersons(previous => [...previous, { type: "form", data: { id: "", series: "" } }]);
+		setOpenIndex(newIndex);
+	};
+
+	const updatePersonField = (index: number, key: keyof PassportDetails, value: string): void => {
+		setPersons(previous =>
+			previous.map((entry, index_) =>
+				index_ === index && entry.type === "form"
+					? { ...entry, data: { ...entry.data, [key]: value } }
+					: entry
+			)
+		);
+	};
+
+	const submitPerson = (index: number): void => {
+		const entry = persons[index];
+		if (!entry || entry.type !== "form") return;
+		const parsed = personSchema.safeParse(entry.data);
+		if (!parsed.success) {
+			// @ts-expect-error Always defined
+			setError(parsed.error.issues[0].message);
+			return;
+		}
+		setError("");
+		getPerson.mutate(entry.data, {
+			onSuccess: (person: Person) => {
+				const exists = persons.some(p =>
+					p.type === "loaded" &&
+					p.data.id === person.id
+				);
+				if (exists) {
+					toast.error("Персона вже додана");
+					return;
+				}
+				const vehicles: Array<Vehicle> = [];
+				getVehicles.mutate(String(person.id), {
+					onSuccess: (vehicles_: Array<Vehicle>) => {
+						vehicles_.forEach((vehicle) => {
+							vehicles.push(vehicle);
+						})
+					}
+				});
+				setPersons(previous =>
+					previous.map((entry, index_) => index_ === index ? { type: "loaded", data: person, vehicles: vehicles } : entry)
+				);
+				setSelectedVehicles(previous => {
+					const copy = [...previous];
+					copy[index] = null;
+					return copy;
+				});
+				setOpenIndex(null);
+				toast.success("Персону знайдено");
+			},
+			onError: () => {
+				toast.error("Персону не знайдено");
+			}
 		});
 	};
 
+	const deletePerson = (index: number): void => {
+		setPersons(previous => previous.filter((_, index_) => index_ !== index));
+		if (openIndex === index) setOpenIndex(null);
+		else if (openIndex !== null && openIndex > index) setOpenIndex(openIndex - 1);
+	};
+
+	const update = (key: string, value: string): void => {
+		if (key.startsWith("media.")) {
+			const [, field] = key.split(".");
+			setForm(previous => ({
+				...previous,
+				media: { ...previous.media, [field as string]: value },
+			}));
+		} else {
+			setForm(previous => ({ ...previous, [key]: value }));
+		}
+	};
+
+	const submit = (event_: React.FormEvent): void => {
+		event_.preventDefault();
+		setIsLoading(true);
+		const loadedPersons = persons.filter(p => p.type === "loaded");
+		const roles: Array<Record<number, keyof typeof AccidentRole>> =
+			loadedPersons.map((entry, index) => ({
+				[entry.data.id]: index === culpritIndex ? 'CULPRIT' : 'VICTIM'
+			}));
+		const vehicleIds = loadedPersons.map((_, index) => selectedVehicles[index]).filter(id => id !== null) as Array<number>;
+		const nextForm = {
+			...form,
+			personsRoles: roles,
+			vehicleIds: vehicleIds,
+		}
+		const parsed = accidentSchema.safeParse(nextForm);
+		if (!parsed.success) {
+			// @ts-expect-error Always defined
+			setError(parsed.error.issues[0].message);
+			setIsLoading(false);
+			return;
+		}
+		if (culpritIndex === null) {
+			setError("Вкажіть винуватця");
+			setIsLoading(false);
+			return;
+		}
+		setError("");
+		const payload = {
+			...nextForm,
+			media: { photos: nextForm.media.photos.length === 0 ? undefined : nextForm.media.photos, videos: nextForm.media.videos.length === 0 ? undefined : nextForm.media.videos },
+			time: `${form.time}:00`,
+		};
+		createAccident.mutate(payload);
+		toast.success('ДТП успішно зареєстровано', {
+			duration: 3000
+		});
+		setIsLoading(false);
+	};
+
+	const updateVehicle = (index: number, value: number): void => {
+		setSelectedVehicles(previous => previous.map((p, index_) => index_ === index ? value : p));
+	};
+
+	const addPhoto = (): void => {
+		setForm(previous => ({
+			...previous,
+			media: { ...previous.media, photos: [...previous.media.photos, ""] }
+		}));
+	};
+
+	const addVideo = (): void => {
+		setForm(previous => ({
+			...previous,
+			media: { ...previous.media, videos: [...previous.media.videos, ""] }
+		}));
+	};
+
+	const updatePhoto = (index: number, value: string): void => {
+		setForm(previous => ({
+			...previous,
+			media: {
+				...previous.media,
+				photos: previous.media.photos.map((p, index_) => index_ === index ? value : p)
+			},
+		}));
+	};
+
+	const updateVideo = (index: number, value: string): void => {
+		setForm(previous => ({
+			...previous,
+			media: {
+				...previous.media,
+				videos: previous.media.videos.map((v, index_) => index_ === index ? value : v)
+			},
+		}));
+	};
+
+	const deletePhoto = (index: number): void => {
+		setForm(previous => ({
+			...previous,
+			media: {
+				...previous.media,
+				photos: previous.media.photos.filter((_, index_) => index_ !== index)
+			}
+		}));
+	};
+
+	const deleteVideo = (index: number): void => {
+		setForm(previous => ({
+			...previous,
+			media: {
+				...previous.media,
+				videos: previous.media.videos.filter((_, index_) => index_ !== index)
+			}
+		}));
+	};
+
 	return (
-		<div className="p-4">
-			<h1 className="text-2xl font-bold mb-4">Create New Accident</h1>
-			<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-				<div>
-					<label className="block font-medium" htmlFor="date">Date</label>
-					<input id="date" {...register('date')} className="w-full p-2 border rounded" />
-					{errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
+		<div className="w-auto mx-auto p-6 flex flex-row justify-center items-center">
+			<form
+				className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg w-2xl"
+				onSubmit={submit}
+			>
+				<h1 className="text-2xl font-bold mb-4 text-center">
+					Зареєструвати ДТП
+				</h1>
+				<div className="grid grid-cols-2 gap-4">
+					<div className="flex flex-col gap-4">
+						<h1 className="text-xl font-semibold text-center">ДТП</h1>
+						<input
+							className="border p-2 rounded"
+							max={new Date().toISOString().split("T")[0]}
+							type="date"
+							value={form.date}
+							onChange={(event_) => {
+								update("date", event_.target.value);
+							}}
+						/>
+
+						<input
+							className="border p-2 rounded"
+							type="time"
+							value={form.time}
+							max={
+								form.date === new Date().toISOString().split("T")[0]
+									? new Date().getHours() + ":" + new Date().getMinutes()
+									: undefined
+							}
+							onChange={(event_) => {
+								update("time", event_.target.value);
+							}}
+						/>
+
+						<input
+							className="border p-2 rounded"
+							placeholder="Назва вулиці"
+							value={form.addressStreet}
+							onChange={(event_) => {
+								update("addressStreet", event_.target.value);
+							}}
+						/>
+						<input
+							className="border p-2 rounded"
+							placeholder="Будівля"
+							value={form.addressNumber}
+							onChange={(event_) => {
+								update("addressNumber", event_.target.value);
+							}}
+						/>
+						<input
+							className="border p-2 rounded"
+							placeholder="Причини"
+							value={form.causes}
+							onChange={(event_) => {
+								update("causes", event_.target.value);
+							}}
+						/>
+						<input
+							className="border p-2 rounded"
+							placeholder="Тип"
+							value={form.type}
+							onChange={(event_) => {
+								update("type", event_.target.value);
+							}}
+						/>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="flex flex-col gap-2">
+								<div className="font-semibold text-center">Фото</div>
+								{form.media.photos.map((p, index) => (
+									<div key={index} className="flex items-center gap-2 w-full">
+										<input
+											key={index}
+											className="border p-2 rounded flex-1 min-w-0"
+											placeholder={`Фото ${index + 1}`}
+											value={p}
+											onChange={(event_) => {
+												updatePhoto(index, event_.target.value);
+											}}
+										/>
+										<RoundedButton
+											type="button"
+											variant="red"
+											onClick={() => {
+												deletePhoto(index);
+											}}
+										>
+											–
+										</RoundedButton>
+									</div>
+								))}
+								<RoundedButton type="button" variant="green" onClick={addPhoto}>
+									+
+								</RoundedButton>
+							</div>
+
+							<div className="flex flex-col gap-2">
+								<div className="font-semibold text-center">Відео</div>
+								{form.media.videos.map((v, index) => (
+									<div key={index} className="flex items-center gap-2 w-full">
+										<input
+											key={index}
+											className="border p-2 rounded flex-1 min-w-0"
+											placeholder={`Відео ${index + 1}`}
+											value={v}
+											onChange={(event_) => {
+												updateVideo(index, event_.target.value);
+											}}
+										/>
+										<RoundedButton
+											type="button"
+											variant="red"
+											onClick={() => {
+												deleteVideo(index);
+											}}
+										>
+											–
+										</RoundedButton>
+									</div>
+								))}
+								<RoundedButton type="button" variant="green" onClick={addVideo}>
+									+
+								</RoundedButton>
+							</div>
+						</div>
+					</div>
+
+					<div className="flex flex-col gap-4">
+						<h1 className="text-xl font-semibold text-center">Персони</h1>
+
+						<div className="flex flex-col gap-2">
+							{persons.map((entry, index) => (
+								<div
+									key={index}
+									className="flex flex-col gap-2 border p-2 rounded"
+								>
+									<div className="flex justify-between items-center">
+										<div className="font-semibold">Персона {index + 1}</div>
+										<RoundedButton
+											type="button"
+											variant="red"
+											onClick={() => {
+												deletePerson(index);
+											}}
+										>
+											–
+										</RoundedButton>
+									</div>
+									{entry.type === "form" ? (
+										<>
+											<input
+												className="border p-2 rounded"
+												placeholder="ID паспорту"
+												value={entry.data.id}
+												onChange={(event_) => {
+													updatePersonField(index, "id", event_.target.value);
+												}}
+											/>
+											<input
+												className="border p-2 rounded"
+												placeholder="Серія паспорту"
+												value={entry.data.series}
+												onChange={(event_) => {
+													updatePersonField(
+														index,
+														"series",
+														event_.target.value
+													);
+												}}
+											/>
+											<RoundedButton
+												type="button"
+												variant="blue"
+												onClick={() => {
+													submitPerson(index);
+												}}
+											>
+												Перевірити
+											</RoundedButton>
+										</>
+									) : (
+										<div className="flex flex-col gap-2">
+											<div className="p-2 bg-gray-100 rounded">
+												<div>
+													ПІБ: {entry.data.surname} {entry.data.name}{" "}
+													{entry.data.patronymic}
+												</div>
+												<div>
+													Паспорт: {entry.data.passportDetails.series}{" "}
+													{entry.data.passportDetails.id}
+												</div>
+												<div>
+													Посвідчення водія: {entry.data.driverLicense.id} (
+													{entry.data.driverLicense.categories.join(", ")})
+												</div>
+											</div>
+											<div className="flex flex-col items-start gap-2">
+												<select
+													className="border p-2 rounded w-full"
+													value={selectedVehicles[index] ?? ""}
+													onChange={event_ => { if (event_.target.value !== "") updateVehicle(index, Number(event_.target.value)); }}
+												>
+													<option value="">Пішохід</option>
+													{entry.vehicles.map(v => (
+														<option key={v.id} value={v.id}>
+															{v.make} {v.model} {v.licensePlate}
+														</option>
+													))}
+												</select>
+												{selectedVehicles[index] !== null && (
+													<div className="flex items-center gap-2">
+														<input
+															checked={culpritIndex === index}
+															name="culprit"
+															type="radio"
+															onChange={() => { setCulpritIndex(index); }}
+														/>
+														<div>Винуватець</div>
+													</div>
+												)}
+											</div>
+										</div>
+									)}
+								</div>
+							))}
+							{openIndex === null && (
+								<RoundedButton
+									type="button"
+									variant="green"
+									onClick={addPerson}
+								>
+									+
+								</RoundedButton>
+							)}
+						</div>
+					</div>
 				</div>
 
-				<div>
-					<label className="block font-medium" htmlFor="media">Media</label>
-					<input id="media" {...register('media')} className="w-full p-2 border rounded" />
-					{errors.media && <p className="text-red-500 text-sm mt-1">{errors.media.message}</p>}
-				</div>
+				{error && (
+					<div className="text-red-600 text-sm border border-red-300 p-2 rounded">
+						{error}
+					</div>
+				)}
 
-				<div>
-					<label className="block font-medium" htmlFor="location">Location</label>
-					<input id="location" {...register('location')} className="w-full p-2 border rounded" />
-					{errors.location && <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>}
-				</div>
-
-				<div>
-					<label className="block font-medium" htmlFor="causes">Causes</label>
-					<input id="causes" {...register('causes')} className="w-full p-2 border rounded" />
-					{errors.causes && <p className="text-red-500 text-sm mt-1">{errors.causes.message}</p>}
-				</div>
-
-				<div>
-					<label className="block font-medium" htmlFor="considerationStatus">Consideration status</label>
-					<select id="considerationStatus" {...register('considerationStatus')} className="w-full p-2 border rounded">
-						<option value="">Оберіть статус</option>
-						{Object.entries(ConsiderationStatus).map(([key, value]) => (
-							<option key={key} value={value}>{value}</option>
-						))}
-					</select>
-					{errors.considerationStatus && <p className="text-red-500 text-sm mt-1">{errors.considerationStatus.message}</p>}
-				</div>
-
-				<div>
-					<label className="block font-medium" htmlFor="assessmentStatus">Assessment status</label>
-					<select id="assessmentStatus" {...register('assessmentStatus')} className="w-full p-2 border rounded">
-						<option value="">Оберіть статус</option>
-						{Object.entries(AssessmentStatus).map(([key, value]) => (
-							<option key={key} value={value}>{value}</option>
-						))}
-					</select>
-					{errors.assessmentStatus && <p className="text-red-500 text-sm mt-1">{errors.assessmentStatus.message}</p>}
-				</div>
-
-				<div>
-					<label className="block font-medium" htmlFor="type">Type</label>
-					<input id="type" {...register('type')} className="w-full p-2 border rounded" />
-					{errors.type && <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>}
-				</div>
-
-				<div>
-					<label className="block font-medium" htmlFor="time">Time</label>
-					<input id="time" {...register('time')} className="w-full p-2 border rounded" />
-					{errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}
-				</div>
-
-				<button
-					className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 cursor-pointer"
-					disabled={createAccidentMutation.isPending}
+				<RoundedButton
+					className="transition p-2"
+					size="large"
 					type="submit"
+					variant="blue"
 				>
-					{createAccidentMutation.isPending ? 'Creating...' : 'Create Accident'}
-				</button>
+					{isLoading ? "Зачекайте..." : "Створити"}
+				</RoundedButton>
 			</form>
+			<Outlet />
 		</div>
 	);
 }

@@ -26,7 +26,6 @@ import { Route as StatisticsMainRouteImport } from './routes/statistics/main'
 import { Route as RegisterPoliceRouteImport } from './routes/register_.police'
 import { Route as RegisterMedicRouteImport } from './routes/register_.medic'
 import { Route as AccidentsNewRouteImport } from './routes/accidents_/new'
-import { Route as AccidentsNewIndexRouteImport } from './routes/accidents_/new/index'
 import { Route as AccidentsNewVehicleRouteImport } from './routes/accidents_/new/vehicle'
 import { Route as AccidentsNewPersonRouteImport } from './routes/accidents_/new/person'
 
@@ -116,11 +115,6 @@ const AccidentsNewRoute = AccidentsNewRouteImport.update({
   path: '/accidents/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccidentsNewIndexRoute = AccidentsNewIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AccidentsNewRoute,
-} as any)
 const AccidentsNewVehicleRoute = AccidentsNewVehicleRouteImport.update({
   id: '/vehicle',
   path: '/vehicle',
@@ -152,7 +146,6 @@ export interface FileRoutesByFullPath {
   '/statistics/': typeof StatisticsIndexRoute
   '/accidents/new/person': typeof AccidentsNewPersonRoute
   '/accidents/new/vehicle': typeof AccidentsNewVehicleRoute
-  '/accidents/new/': typeof AccidentsNewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,6 +156,7 @@ export interface FileRoutesByTo {
   '/report': typeof ReportRoute
   '/user': typeof UserRoute
   '/user-applications': typeof UserApplicationsRoute
+  '/accidents/new': typeof AccidentsNewRouteWithChildren
   '/register/medic': typeof RegisterMedicRoute
   '/register/police': typeof RegisterPoliceRoute
   '/statistics/main': typeof StatisticsMainRoute
@@ -172,7 +166,6 @@ export interface FileRoutesByTo {
   '/statistics': typeof StatisticsIndexRoute
   '/accidents/new/person': typeof AccidentsNewPersonRoute
   '/accidents/new/vehicle': typeof AccidentsNewVehicleRoute
-  '/accidents/new': typeof AccidentsNewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -195,7 +188,6 @@ export interface FileRoutesById {
   '/statistics/': typeof StatisticsIndexRoute
   '/accidents_/new/person': typeof AccidentsNewPersonRoute
   '/accidents_/new/vehicle': typeof AccidentsNewVehicleRoute
-  '/accidents_/new/': typeof AccidentsNewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -219,7 +211,6 @@ export interface FileRouteTypes {
     | '/statistics/'
     | '/accidents/new/person'
     | '/accidents/new/vehicle'
-    | '/accidents/new/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,6 +221,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/user'
     | '/user-applications'
+    | '/accidents/new'
     | '/register/medic'
     | '/register/police'
     | '/statistics/main'
@@ -239,7 +231,6 @@ export interface FileRouteTypes {
     | '/statistics'
     | '/accidents/new/person'
     | '/accidents/new/vehicle'
-    | '/accidents/new'
   id:
     | '__root__'
     | '/'
@@ -261,7 +252,6 @@ export interface FileRouteTypes {
     | '/statistics/'
     | '/accidents_/new/person'
     | '/accidents_/new/vehicle'
-    | '/accidents_/new/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -401,13 +391,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccidentsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/accidents_/new/': {
-      id: '/accidents_/new/'
-      path: '/'
-      fullPath: '/accidents/new/'
-      preLoaderRoute: typeof AccidentsNewIndexRouteImport
-      parentRoute: typeof AccidentsNewRoute
-    }
     '/accidents_/new/vehicle': {
       id: '/accidents_/new/vehicle'
       path: '/vehicle'
@@ -446,13 +429,11 @@ const StatisticsRouteWithChildren = StatisticsRoute._addFileChildren(
 interface AccidentsNewRouteChildren {
   AccidentsNewPersonRoute: typeof AccidentsNewPersonRoute
   AccidentsNewVehicleRoute: typeof AccidentsNewVehicleRoute
-  AccidentsNewIndexRoute: typeof AccidentsNewIndexRoute
 }
 
 const AccidentsNewRouteChildren: AccidentsNewRouteChildren = {
   AccidentsNewPersonRoute: AccidentsNewPersonRoute,
   AccidentsNewVehicleRoute: AccidentsNewVehicleRoute,
-  AccidentsNewIndexRoute: AccidentsNewIndexRoute,
 }
 
 const AccidentsNewRouteWithChildren = AccidentsNewRoute._addFileChildren(

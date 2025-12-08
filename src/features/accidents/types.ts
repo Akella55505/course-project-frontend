@@ -5,7 +5,7 @@ import type { Person } from "../persons/types";
 import type { Vehicle } from "../vehicles/types";
 import type { MedicalReport } from "../medical-reports/types.ts";
 import type { Violation } from "../violations/types.ts";
-import type { AccidentVehicle, PersonAccidentRole } from "../many-to-many/types.ts";
+import type { AccidentRole, AccidentVehicle, PersonAccidentRole } from "../many-to-many/types.ts";
 import type { InsurancePayment } from "../insurance/payments/types.ts";
 
 export type Accident = {
@@ -22,8 +22,8 @@ export type Accident = {
 };
 
 export type Media = {
-	photos: Array<string>;
-	videos: Array<string>;
+	photos?: Array<string>;
+	videos?: Array<string>;
 }
 
 export enum ConsiderationStatus {
@@ -97,4 +97,16 @@ export enum Daytime {
 	AFTERNOON = 'День',
 	EVENING = 'Вечір',
 	NIGHT = 'Ніч'
+}
+
+export type AccidentRegisterDto = {
+	date: string;
+	time: string;
+	addressStreet: string;
+	addressNumber: string;
+	causes: string;
+	type: string;
+	media?: Media;
+	personsRoles: Array<Record<number, keyof typeof AccidentRole>>,
+	vehicleIds: Array<number>,
 }
