@@ -73,6 +73,7 @@ export function UserCreateApplicationPage(): ReactElement {
 				className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg"
 				onSubmit={submit}
 			>
+				<h1 className="text-2xl font-bold mb-4">Створити заяву</h1>
 				<input
 					className="border p-2 rounded"
 					placeholder="Ваше ім'я"
