@@ -7,9 +7,9 @@ import { toast } from "react-hot-toast";
 import { useLocation } from "@tanstack/react-router";
 
 const personSchema = z.object({
-	name: z.string().min(1, "Введіть ім'я"),
-	surname: z.string().min(1, 'Введіть прізвище'),
-	patronymic: z.string().min(1, 'Введіть по-батькові'),
+	name: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "Ім'я має починатися з великої літери"),
+	surname: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "Прізвище має починатися з великої літери"),
+	patronymic: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "По-батькові має починатися з великої літери"),
 	driverLicense: z.object({
 		id: z.string().regex(new RegExp(/^[A-Z]{2}\d{4}[A-Z]{2}$/), "ID посвідчення мусить мати вигляд АА1234АА").or(z.literal('')),
 		categories: z.array(z.string().regex(/^[A-Z]$/, "Категорії мають бути визначені однією великою літерою")).optional(),
