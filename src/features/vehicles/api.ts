@@ -1,4 +1,5 @@
-import type { UseMutationResult } from "@tanstack/react-query";
+import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';
@@ -9,31 +10,26 @@ const getVehiclesByPersonId = async (personId: string): Promise<Array<Vehicle>> 
 	return response.data as Array<Vehicle>;
 }
 
-const createVehicle = async (newVehicle: Omit<Vehicle, 'id'>): Promise<Vehicle> => {
+const createVehicle = async (newVehicle: Omit<Vehicle, 'id'>): Promise<{ personId: number }> => {
 	const response = await apiClient.post('/vehicles', newVehicle);
-	return response.data as Vehicle;
+	return response.data as { personId: number };
 }
 
-export const useVehicles = (): UseMutationResult<Array<Vehicle>, Error, string> => {
-	const queryClient = useQueryClient();
-
-	return useMutation<Array<Vehicle>, Error, string>({
-		mutationFn: (personId: string) => getVehiclesByPersonId(personId),
-		onSuccess: async (personId) => {
-			await queryClient.invalidateQueries({ queryKey: ['vehicles', personId] });
-		}
+export const useVehicles = (personId: string): UseQueryResult<Array<Vehicle>, Error> =>
+	useQuery<Array<Vehicle>, Error>({
+		queryKey: ['vehicles', personId],
+		queryFn: () => getVehiclesByPersonId(personId)
 	});
-};
 
-export const useCreateVehicle = (): UseMutationResult<Vehicle, Error, Omit<Vehicle, "id">, unknown> => {
+export const useCreateVehicle = (): UseMutationResult<{ personId: number }, Error, Omit<Vehicle, "id">, unknown> => {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
 	return useMutation({
 		mutationFn: createVehicle,
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-			await navigate({ to: '/accidents/new' });
+		onSuccess: async ({ personId }) => {
+			await queryClient.invalidateQueries({ queryKey: ['vehicles', String(personId)] });
+			await navigate({ to: "/accidents/new" });
 		},
 	});
 };

@@ -18,6 +18,7 @@ declare module "@tanstack/react-router" {
 	interface HistoryState {
 		// Define your state properties here
 		passportDetails?: { id: string, series: string }; // Example
+		ownerId?: number;
 	}
 }
 

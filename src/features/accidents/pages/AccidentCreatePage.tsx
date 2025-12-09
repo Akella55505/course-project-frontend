@@ -10,7 +10,6 @@ import { Outlet, useNavigate } from "@tanstack/react-router";
 import type { PassportDetails, Person } from "../../persons/types.ts";
 import { usePerson } from "../../persons/api.ts";
 import { useVehicles } from "../../vehicles/api.ts";
-import type { Vehicle } from "../../vehicles/types.ts";
 
 const accidentSchema = z.object({
 	date: z.string().min(1, "Вкажіть дату"),
@@ -49,7 +48,72 @@ type FormState = {
 
 type PersonEntry =
 	| { type: "form"; data: PassportDetails }
-	| { type: "loaded"; data: Person, vehicles: Array<Vehicle> };
+	| { type: "loaded"; data: Person };
+
+function FetchedPersonSelector({
+												 personId,
+												 selectedVehicles,
+												 setSelectedVehicles,
+												 culpritIndex,
+												 setCulpritIndex,
+												 index,
+											 }: {
+												 personId: string;
+												 selectedVehicles: Array<number | null>;
+												 setSelectedVehicles: React.Dispatch<React.SetStateAction<Array<number | null>>>;
+												 culpritIndex: number | null;
+												 setCulpritIndex: React.Dispatch<React.SetStateAction<number | null>>;
+												 index: number;
+											 }): ReactElement {
+	const getVehicles = useVehicles(personId);
+	const navigate = useNavigate();
+	
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="flex flex-row gap-2 w-full">
+				<select
+					className="border p-2 rounded w-full"
+					value={selectedVehicles[index] ?? ""}
+					onChange={(event_) => {
+						const selected = event_.target.value;
+						const isPedestrian = selected === "";
+						if (isPedestrian && culpritIndex === index) setCulpritIndex(null);
+						setSelectedVehicles(previous =>
+							previous.map((v, index_) => index_ === index ? (isPedestrian ? null : Number(selected)) : v)
+						);
+					}}
+				>
+					<option value="">Пішохід</option>
+					{getVehicles.data?.map(v => (
+						<option key={v.id} value={v.id}>
+							{v.make} {v.model} {v.licensePlate}
+						</option>
+					))}
+				</select>
+				<RoundedButton
+					type="button"
+					variant="green"
+					onClick={async () => {
+						await navigate({ to: "/accidents/new/vehicle", state: { ownerId: Number(personId) } });
+					}}
+				>
+					+
+				</RoundedButton>
+			</div>
+			{selectedVehicles[index] !== null && (
+				<div className="flex items-center gap-2">
+					<input
+						checked={culpritIndex === index}
+						name="culprit"
+						type="radio"
+						onChange={() => { setCulpritIndex(index); }}
+					/>
+					<div>Винуватець</div>
+				</div>
+			)}
+		</div>
+	);
+}
 
 export function AccidentCreatePage(): ReactElement {
 	const createAccident = useCreateAccident();
@@ -69,7 +133,6 @@ export function AccidentCreatePage(): ReactElement {
 	const getPerson = usePerson();
 	const [error, setError] = useState("");
 	const [culpritIndex, setCulpritIndex] = useState<number | null>(null);
-	const getVehicles = useVehicles();
 	const [selectedVehicles, setSelectedVehicles] = useState<Array<number | null>>([]);
 	const navigate = useNavigate();
 
@@ -110,16 +173,8 @@ export function AccidentCreatePage(): ReactElement {
 					toast.error("Персона вже додана");
 					return;
 				}
-				const vehicles: Array<Vehicle> = [];
-				getVehicles.mutate(String(person.id), {
-					onSuccess: (vehicles_: Array<Vehicle>) => {
-						vehicles_.forEach((vehicle) => {
-							vehicles.push(vehicle);
-						})
-					}
-				});
 				setPersons(previous =>
-					previous.map((entry, index_) => index_ === index ? { type: "loaded", data: person, vehicles: vehicles } : entry)
+					previous.map((entry, index_) => index_ === index ? { type: "loaded", data: person } : entry)
 				);
 				setSelectedVehicles(previous => {
 					const copy = [...previous];
@@ -151,6 +206,12 @@ export function AccidentCreatePage(): ReactElement {
 		setPersons(previous => previous.filter((_, index_) => index_ !== index));
 		if (openIndex === index) setOpenIndex(null);
 		else if (openIndex !== null && openIndex > index) setOpenIndex(openIndex - 1);
+		if (culpritIndex === index) setCulpritIndex(null);
+		setSelectedVehicles(previous => {
+			const copy = [...previous];
+			copy.splice(index, 1);
+			return copy;
+		});
 	};
 
 	const update = (key: string, value: string): void => {
@@ -204,10 +265,6 @@ export function AccidentCreatePage(): ReactElement {
 				toast.error('Виникла помилка');
 			}
 		});
-	};
-
-	const updateVehicle = (index: number, value: number): void => {
-		setSelectedVehicles(previous => previous.map((p, index_) => index_ === index ? value : p));
 	};
 
 	const addPhoto = (): void => {
@@ -465,31 +522,15 @@ export function AccidentCreatePage(): ReactElement {
 													</div>
 												)}
 											</div>
-											<div className="flex flex-col items-start gap-2">
-												<select
-													className="border p-2 rounded w-full"
-													value={selectedVehicles[index] ?? ""}
-													onChange={event_ => { if (event_.target.value !== "") updateVehicle(index, Number(event_.target.value)); }}
-												>
-													<option value="">Пішохід</option>
-													{entry.vehicles.map(v => (
-														<option key={v.id} value={v.id}>
-															{v.make} {v.model} {v.licensePlate}
-														</option>
-													))}
-												</select>
-												{selectedVehicles[index] !== null && (
-													<div className="flex items-center gap-2">
-														<input
-															checked={culpritIndex === index}
-															name="culprit"
-															type="radio"
-															onChange={() => { setCulpritIndex(index); }}
-														/>
-														<div>Винуватець</div>
-													</div>
-												)}
-											</div>
+											<FetchedPersonSelector
+												key={entry.data.id}
+												culpritIndex={culpritIndex}
+												index={index}
+												personId={String(entry.data.id)}
+												selectedVehicles={selectedVehicles}
+												setCulpritIndex={setCulpritIndex}
+												setSelectedVehicles={setSelectedVehicles}
+											/>
 										</div>
 									)}
 								</div>
