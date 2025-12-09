@@ -530,7 +530,7 @@ export function AccidentsListPage(): ReactElement {
 							<td className="px-4 py-2">{accumulator.addressStreet}, {accumulator.addressNumber}</td>
 							{accumulator.causes && <td className="px-4 py-2">{accumulator.causes}</td>}
 							<td className="px-4 py-2">{accumulator.time.substring(0, 5)}</td>
-							{accumulator.media && <td className="px-4 py-2 space-y-1">
+							{accumulator.media && <td className="px-4 py-2 space-y-2">
 								{accumulator.media.photos && (
 									<div>
 										<div className="font-medium">Фото:</div>
@@ -538,7 +538,7 @@ export function AccidentsListPage(): ReactElement {
 									</div>
 								)}
 								{accumulator.media.videos && (
-									<div className="mt-2">
+									<div>
 										<div className="font-medium">Відео:</div>
 										{accumulator.media.videos.map((v, index) => <div key={index}>{v}</div>)}
 									</div>
