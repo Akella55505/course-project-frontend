@@ -15,6 +15,10 @@ declare module "@tanstack/react-router" {
 		// This infers the type of our router and registers it across your entire project
 		router: TanstackRouter;
 	}
+	interface HistoryState {
+		// Define your state properties here
+		passportDetails?: { id: string, series: string }; // Example
+	}
 }
 
 const rootElement = document.querySelector("#root") as Element;

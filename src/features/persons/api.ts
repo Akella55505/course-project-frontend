@@ -9,9 +9,8 @@ const getPersonByPassportDetails = async (passportDetails: PassportDetails): Pro
 	return response.data as Person;
 }
 
-const createPerson = async (newPerson: Omit<Person, 'id'>): Promise<Person> => {
-	const response = await apiClient.post('/persons', newPerson);
-	return response.data as Person;
+const createPerson = async (newPerson: Partial<Person>): Promise<void> => {
+	await apiClient.post('/persons', newPerson);
 }
 
 const setPersonEmail = async (passportDetails: PassportDetails): Promise<void> => {
@@ -24,7 +23,7 @@ export const usePerson = (): UseMutationResult<Person, Error, PassportDetails> =
 	});
 };
 
-export const useCreatePerson = (): UseMutationResult<Person, Error, Omit<Person, "id">, unknown> => {
+export const useCreatePerson = (): UseMutationResult<void, Error, Partial<Person>, unknown> => {
 	const navigate = useNavigate();
 
 	return useMutation({

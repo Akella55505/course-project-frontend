@@ -6,7 +6,7 @@ import { useState } from "react";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { toast } from "react-hot-toast";
 import { AccidentRole } from "../../many-to-many/types.ts";
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useNavigate } from "@tanstack/react-router";
 import type { PassportDetails, Person } from "../../persons/types.ts";
 import { usePerson } from "../../persons/api.ts";
 import { useVehicles } from "../../vehicles/api.ts";
@@ -69,9 +69,9 @@ export function AccidentCreatePage(): ReactElement {
 	const getPerson = usePerson();
 	const [error, setError] = useState("");
 	const [culpritIndex, setCulpritIndex] = useState<number | null>(null);
-	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const getVehicles = useVehicles();
 	const [selectedVehicles, setSelectedVehicles] = useState<Array<number | null>>([]);
+	const navigate = useNavigate();
 
 	const addPerson = (): void => {
 		if (openIndex !== null) return;
@@ -131,6 +131,18 @@ export function AccidentCreatePage(): ReactElement {
 			},
 			onError: () => {
 				toast.error("Персону не знайдено");
+				navigate({
+					to: "/accidents/new/person",
+					state: {
+						passportDetails: {
+							id: entry.data.id,
+							series: entry.data.series,
+						}
+					}
+				})
+					.catch(() => {
+						return;
+					});
 			}
 		});
 	};
@@ -155,7 +167,6 @@ export function AccidentCreatePage(): ReactElement {
 
 	const submit = (event_: React.FormEvent): void => {
 		event_.preventDefault();
-		setIsLoading(true);
 		const loadedPersons = persons.filter(p => p.type === "loaded");
 		const roles: Array<Record<number, keyof typeof AccidentRole>> =
 			loadedPersons.map((entry, index) => ({
@@ -171,12 +182,10 @@ export function AccidentCreatePage(): ReactElement {
 		if (!parsed.success) {
 			// @ts-expect-error Always defined
 			setError(parsed.error.issues[0].message);
-			setIsLoading(false);
 			return;
 		}
 		if (culpritIndex === null) {
 			setError("Вкажіть винуватця");
-			setIsLoading(false);
 			return;
 		}
 		setError("");
@@ -185,11 +194,16 @@ export function AccidentCreatePage(): ReactElement {
 			media: { photos: nextForm.media.photos.length === 0 ? undefined : nextForm.media.photos, videos: nextForm.media.videos.length === 0 ? undefined : nextForm.media.videos },
 			time: `${form.time}:00`,
 		};
-		createAccident.mutate(payload);
-		toast.success('ДТП успішно зареєстровано', {
-			duration: 3000
+		createAccident.mutate(payload, {
+			onSuccess: () => {
+				toast.success('ДТП успішно зареєстровано', {
+					duration: 3000
+				});
+			},
+			onError: () => {
+				toast.error('Виникла помилка');
+			}
 		});
-		setIsLoading(false);
 	};
 
 	const updateVehicle = (index: number, value: number): void => {
@@ -444,10 +458,12 @@ export function AccidentCreatePage(): ReactElement {
 													Паспорт: {entry.data.passportDetails.series}{" "}
 													{entry.data.passportDetails.id}
 												</div>
-												<div>
-													Посвідчення водія: {entry.data.driverLicense.id} (
-													{entry.data.driverLicense.categories.join(", ")})
-												</div>
+												{entry.data.driverLicense && (
+													<div>
+														Посвідчення водія: {entry.data.driverLicense.id} (
+														{entry.data.driverLicense.categories.join(", ")})
+													</div>
+												)}
 											</div>
 											<div className="flex flex-col items-start gap-2">
 												<select
@@ -503,7 +519,7 @@ export function AccidentCreatePage(): ReactElement {
 					type="submit"
 					variant="blue"
 				>
-					{isLoading ? "Зачекайте..." : "Створити"}
+					{createAccident.isPending ? "Зачекайте..." : "Створити"}
 				</RoundedButton>
 			</form>
 			<Outlet />
