@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { toast } from "react-hot-toast";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 
 const personSchema = z.object({
 	name: z.string().regex(new RegExp(/^[А-ЯҐЄІЇ][а-яґєії'-]*([ -][А-ЯҐЄІЇ][а-яґєії'-]*)*$/), "Ім'я має починатися з великої літери"),
@@ -45,6 +45,7 @@ export function PersonCreatePage(): ReactElement {
 		driverLicense: { id: "", categories: "" },
 	});
 	const [error, setError] = useState("");
+	const navigate = useNavigate();
 
 
 	const update = (key: string, value: string): void => {
@@ -103,9 +104,21 @@ export function PersonCreatePage(): ReactElement {
 				className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg w-auto"
 				onSubmit={submit}
 			>
-				<h1 className="text-2xl font-bold mb-4 text-center">
-					Зареєструвати персону
-				</h1>
+				<div className="relative">
+					<h1 className="text-2xl font-bold mb-4 text-center -translate-y-1/12">
+						Зареєструвати персону
+					</h1>
+					<RoundedButton
+						className="absolute top-0 right-0"
+						type="button"
+						variant="red"
+						onClick={async () => {
+							await navigate({ to: "/accidents/new" });
+						}}
+					>
+						X
+					</RoundedButton>
+				</div>
 				<div className="flex flex-col gap-4">
 					<input
 						className="border p-2 rounded"
@@ -136,13 +149,17 @@ export function PersonCreatePage(): ReactElement {
 							className="border p-2 rounded"
 							placeholder="ID паспорту"
 							value={form.passportDetails.id}
-							onChange={event_ => { update("passport.id", event_.target.value); }}
+							onChange={(event_) => {
+								update("passport.id", event_.target.value);
+							}}
 						/>
 						<input
 							className="border p-2 rounded"
 							placeholder="Серія паспорту"
 							value={form.passportDetails.series}
-							onChange={event_ => { update("passport.series", event_.target.value); }}
+							onChange={(event_) => {
+								update("passport.series", event_.target.value);
+							}}
 						/>
 					</div>
 					<div className="grid grid-cols-2 gap-4">
@@ -150,13 +167,17 @@ export function PersonCreatePage(): ReactElement {
 							className="border p-2 rounded"
 							placeholder="ID посвідчення водія"
 							value={form.driverLicense.id}
-							onChange={event_ => { update("driver.id", event_.target.value); }}
+							onChange={(event_) => {
+								update("driver.id", event_.target.value);
+							}}
 						/>
 						<input
 							className="border p-2 rounded"
 							placeholder="Категорії, через кому"
 							value={form.driverLicense.categories}
-							onChange={event_ => { update("driver.categories", event_.target.value); }}
+							onChange={(event_) => {
+								update("driver.categories", event_.target.value);
+							}}
 						/>
 					</div>
 				</div>

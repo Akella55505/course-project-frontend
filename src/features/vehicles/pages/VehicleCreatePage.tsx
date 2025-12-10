@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type React from "react";
 import { useState, type ReactElement } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { toast } from "react-hot-toast";
 import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { useCreateVehicle } from "../api.ts";
@@ -33,7 +33,7 @@ export function VehicleCreatePage(): ReactElement {
 		personId: incoming ?? -1,
 	});
 	const [error, setError] = useState("");
-
+	const navigate = useNavigate();
 
 	const update = (key: string, value: string): void => {
 		setForm(previous => ({ ...previous, [key]: value }));
@@ -66,9 +66,21 @@ export function VehicleCreatePage(): ReactElement {
 				className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg w-md"
 				onSubmit={submit}
 			>
-				<h1 className="text-2xl font-bold mb-4 text-center">
-					Зареєструвати ТЗ
-				</h1>
+				<div className="relative">
+					<h1 className="text-2xl font-bold mb-4 text-center -translate-y-1/12">
+						Зареєструвати ТЗ
+					</h1>
+					<RoundedButton
+						className="absolute top-0 right-0"
+						type="button"
+						variant="red"
+						onClick={async () => {
+							await navigate({ to: "/accidents/new" });
+						}}
+					>
+						X
+					</RoundedButton>
+				</div>
 				<div className="flex flex-col gap-4">
 					<input
 						className="border p-2 rounded"
