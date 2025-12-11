@@ -243,7 +243,10 @@ export function AccidentsListPage(): ReactElement {
 				{ onSuccess: () => {
 						setPopup(null);
 						toast.success("Успішно створено");
-					} }); },
+					},
+					onError: () => {
+						toast.error("Виникла помилка");
+					}}); },
 		INSURANCE_EVALUATION: (p: Extract<PopupKind, { type: 'INSURANCE_EVALUATION' }>) =>
 			{ createInsuranceEvaluation.mutate(
 				{
@@ -255,14 +258,20 @@ export function AccidentsListPage(): ReactElement {
 				{ onSuccess: () => {
 					setPopup(null);
 					toast.success("Успішно створено");
-					} }
+					},
+					onError: () => {
+						toast.error("Виникла помилка");
+					}}
 			); },
 		INSURANCE_PAYMENT: (p: Extract<PopupKind, { type: 'INSURANCE_PAYMENT' }>) =>
 			{ createInsurancePayment.mutate({ id: 0, personId: p.personId, insuranceEvaluationId: p.insuranceEvaluationId, payment: Math.round(parseFloat(p.payment) * 100) },
 				{ onSuccess: () => {
 						setPopup(null);
 						toast.success("Успішно створено");
-					}}); },
+					},
+				onError: () => {
+					toast.error("Неможливо видати виплату: у цього водія більше двох ДТП за цей місяць", { duration: 4000 });
+				}}); },
 		MEDICAL_REPORT: (p: Extract<PopupKind, { type: 'MEDICAL_REPORT' }>) =>
 			{ createMedicalReport.mutate({ id: 0, accidentId: p.accidentId, personId: p.personId, report: p.report.trim() },
 				{ onSuccess: () => {
@@ -277,7 +286,10 @@ export function AccidentsListPage(): ReactElement {
 			{ onSuccess: () => {
 					setPopup(null);
 					toast.success("Успішно створено");
-				} }); },
+				},
+				onError: () => {
+					toast.error("Виникла помилка");
+				}}); },
 	} as const;
 
 	return (
