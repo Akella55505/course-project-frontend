@@ -1,8 +1,10 @@
-import type { UseMutationResult } from "@tanstack/react-query";
+import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';
 import type { PassportDetails, Person } from "./types";
+import type { AccidentDataDto } from "../accidents/types.ts";
 
 const getPersonByPassportDetails = async (passportDetails: PassportDetails): Promise<Person> => {
 	const response = await apiClient.get(`/persons`, { params: passportDetails });
@@ -15,6 +17,11 @@ const createPerson = async (newPerson: Partial<Person>): Promise<void> => {
 
 const setPersonEmail = async (passportDetails: PassportDetails): Promise<void> => {
 	await apiClient.patch(`/persons`, passportDetails);
+}
+
+const getPersonData = async (personId: string): Promise<AccidentDataDto> => {
+	const response = await apiClient.get(`/persons/${personId}`);
+	return response.data as AccidentDataDto;
 }
 
 export const usePerson = (): UseMutationResult<Person, Error, PassportDetails> => {
@@ -46,3 +53,9 @@ export const usePersonEmail = (): UseMutationResult<void, Error, PassportDetails
 		},
 	});
 };
+
+export const usePersonData = (personId: string): UseQueryResult<AccidentDataDto, Error> =>
+	useQuery<AccidentDataDto>({
+		queryKey: ['person', personId],
+		queryFn: () => getPersonData(personId),
+	});

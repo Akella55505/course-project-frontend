@@ -25,6 +25,7 @@ import { Route as StatisticsPreviousQuarterRouteImport } from './routes/statisti
 import { Route as StatisticsMainRouteImport } from './routes/statistics/main'
 import { Route as RegisterPoliceRouteImport } from './routes/register_.police'
 import { Route as RegisterMedicRouteImport } from './routes/register_.medic'
+import { Route as PersonsPersonIdRouteImport } from './routes/persons.$personId'
 import { Route as AccidentsNewRouteImport } from './routes/accidents_/new'
 import { Route as AccidentsNewVehicleRouteImport } from './routes/accidents_/new/vehicle'
 import { Route as AccidentsNewPersonRouteImport } from './routes/accidents_/new/person'
@@ -110,6 +111,11 @@ const RegisterMedicRoute = RegisterMedicRouteImport.update({
   path: '/register/medic',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PersonsPersonIdRoute = PersonsPersonIdRouteImport.update({
+  id: '/persons/$personId',
+  path: '/persons/$personId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccidentsNewRoute = AccidentsNewRouteImport.update({
   id: '/accidents_/new',
   path: '/accidents/new',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/user': typeof UserRoute
   '/user-applications': typeof UserApplicationsRoute
   '/accidents/new': typeof AccidentsNewRouteWithChildren
+  '/persons/$personId': typeof PersonsPersonIdRoute
   '/register/medic': typeof RegisterMedicRoute
   '/register/police': typeof RegisterPoliceRoute
   '/statistics/main': typeof StatisticsMainRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/user': typeof UserRoute
   '/user-applications': typeof UserApplicationsRoute
   '/accidents/new': typeof AccidentsNewRouteWithChildren
+  '/persons/$personId': typeof PersonsPersonIdRoute
   '/register/medic': typeof RegisterMedicRoute
   '/register/police': typeof RegisterPoliceRoute
   '/statistics/main': typeof StatisticsMainRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/user': typeof UserRoute
   '/user-applications': typeof UserApplicationsRoute
   '/accidents_/new': typeof AccidentsNewRouteWithChildren
+  '/persons/$personId': typeof PersonsPersonIdRoute
   '/register_/medic': typeof RegisterMedicRoute
   '/register_/police': typeof RegisterPoliceRoute
   '/statistics/main': typeof StatisticsMainRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/user'
     | '/user-applications'
     | '/accidents/new'
+    | '/persons/$personId'
     | '/register/medic'
     | '/register/police'
     | '/statistics/main'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/user'
     | '/user-applications'
     | '/accidents/new'
+    | '/persons/$personId'
     | '/register/medic'
     | '/register/police'
     | '/statistics/main'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/user'
     | '/user-applications'
     | '/accidents_/new'
+    | '/persons/$personId'
     | '/register_/medic'
     | '/register_/police'
     | '/statistics/main'
@@ -265,6 +277,7 @@ export interface RootRouteChildren {
   UserRoute: typeof UserRoute
   UserApplicationsRoute: typeof UserApplicationsRoute
   AccidentsNewRoute: typeof AccidentsNewRouteWithChildren
+  PersonsPersonIdRoute: typeof PersonsPersonIdRoute
   RegisterMedicRoute: typeof RegisterMedicRoute
   RegisterPoliceRoute: typeof RegisterPoliceRoute
   UserFormRoute: typeof UserFormRoute
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterMedicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/persons/$personId': {
+      id: '/persons/$personId'
+      path: '/persons/$personId'
+      fullPath: '/persons/$personId'
+      preLoaderRoute: typeof PersonsPersonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/accidents_/new': {
       id: '/accidents_/new'
       path: '/accidents/new'
@@ -451,6 +471,7 @@ const rootRouteChildren: RootRouteChildren = {
   UserRoute: UserRoute,
   UserApplicationsRoute: UserApplicationsRoute,
   AccidentsNewRoute: AccidentsNewRouteWithChildren,
+  PersonsPersonIdRoute: PersonsPersonIdRoute,
   RegisterMedicRoute: RegisterMedicRoute,
   RegisterPoliceRoute: RegisterPoliceRoute,
   UserFormRoute: UserFormRoute,

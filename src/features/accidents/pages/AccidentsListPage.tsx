@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import { useCreateCourtDecision } from "../../court-decisions/api.ts";
 import { usePoliceIsRegistered } from "../../policeman/api.ts";
 import { useMedicIsRegistered } from "../../medic/api.ts";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 const accidentSchema = z.object({
 	date: z.string().regex(new RegExp("^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"), "Введіть дату в форматі РРРР-ММ-ДД").or(z.literal('')),
@@ -600,72 +600,146 @@ export function AccidentsListPage(): ReactElement {
 									: undefined;
 
 								return (
-									<tr key={p.person.id} className="bg-gray-50 hover:bg-gray-100">
+									<tr
+										key={p.person.id}
+										className="bg-gray-50 hover:bg-gray-100"
+									>
 										<td></td>
 										<td className="px-4 py-2" colSpan={3}>
 											<div className="flex justify-between">
 												<div className="space-y-1">
-													<div><strong>ПІБ:</strong> {p.person.surname} {p.person.name} {p.person.patronymic}</div>
+													<div>
+														<strong>ПІБ: </strong>
+														<Link
+															className="text-blue-700 hover:underline"
+															// @ts-expect-error Always works
+															to={`/persons/${p.person.id}`}
+														>
+															{p.person.surname} {p.person.name}{" "}
+															{p.person.patronymic}
+														</Link>
+													</div>
 													{p.person.driverLicense && (
-														<div><strong>Посвідчення водія:</strong> {p.person.driverLicense.id} ({p.person.driverLicense.categories.join(", ")})</div>
+														<div>
+															<strong>Посвідчення водія:</strong>{" "}
+															{p.person.driverLicense.id} (
+															{p.person.driverLicense.categories.join(", ")})
+														</div>
 													)}
 													{p.person.passportDetails && (
-														<div><strong>Паспортні дані:</strong> {p.person.passportDetails.series} {p.person.passportDetails.id}</div>
+														<div>
+															<strong>Паспортні дані:</strong>{" "}
+															{p.person.passportDetails.series}{" "}
+															{p.person.passportDetails.id}
+														</div>
 													)}
-													<div><strong>Роль:</strong> {AccidentRole[p.accidentRole]}</div>
+													<div>
+														<strong>Роль:</strong>{" "}
+														{AccidentRole[p.accidentRole]}
+													</div>
 												</div>
 
 												<div className="flex flex-col space-y-2">
-													{!((userRole === ApplicationRole.COURT) ||
-														(userRole === ApplicationRole.INSURANCE && (personVehicle === undefined || (
-															personInsuranceEvaluation !== undefined && personInsurancePayment !== undefined)))) && (
+													{!(
+														userRole === ApplicationRole.COURT ||
+														(userRole === ApplicationRole.INSURANCE &&
+															(personVehicle === undefined ||
+																(personInsuranceEvaluation !== undefined &&
+																	personInsurancePayment !== undefined)))
+													) && (
 														<strong className="self-center">Створити</strong>
 													)}
 													{userRole === ApplicationRole.POLICE && (
 														<div className="flex flex-col space-y-2">
-															{p.accidentRole === 'CULPRIT' && personAdministrativeDecision === undefined && (
-																<RoundedButton
-																	variant="blue"
-																	onClick={() => {
-																		setPopup({ type: 'ADMINISTRATIVE_DECISION', accidentId: accumulator.id, personId: p.person.id, decision: '', error: null });
-																	}}
-																>Адмін. рішення</RoundedButton>
-															)}
+															{p.accidentRole === "CULPRIT" &&
+																personAdministrativeDecision === undefined && (
+																	<RoundedButton
+																		variant="blue"
+																		onClick={() => {
+																			setPopup({
+																				type: "ADMINISTRATIVE_DECISION",
+																				accidentId: accumulator.id,
+																				personId: p.person.id,
+																				decision: "",
+																				error: null,
+																			});
+																		}}
+																	>
+																		Адмін. рішення
+																	</RoundedButton>
+																)}
 															<RoundedButton
 																variant="blue"
 																onClick={() => {
-																	setPopup({ type: 'VIOLATION', accidentId: accumulator.id, personId: p.person.id, violation: '', error: null });
+																	setPopup({
+																		type: "VIOLATION",
+																		accidentId: accumulator.id,
+																		personId: p.person.id,
+																		violation: "",
+																		error: null,
+																	});
 																}}
-															>Порушення</RoundedButton>
+															>
+																Порушення
+															</RoundedButton>
 														</div>
-														)}
+													)}
 													{userRole === ApplicationRole.INSURANCE && (
 														<div className="flex flex-col space-y-2">
-															{personInsuranceEvaluation === undefined && personVehicle !== undefined && (
-																<RoundedButton
-																	variant="blue"
-																	onClick={() => {
-																		setPopup({ type: 'INSURANCE_EVALUATION', accidentId: accumulator.id, vehicleId: personVehicle.id, conclusion: '', error: null });
-																	}}
-																>Страх. оцінку</RoundedButton>
-															)}
-															{personInsuranceEvaluation !== undefined && personInsurancePayment === undefined && (
-																<RoundedButton
-																	variant="blue"
-																	onClick={() => {
-																		setPopup({ type: 'INSURANCE_PAYMENT', insuranceEvaluationId: personInsuranceEvaluation.id, personId: p.person.id, payment: '', error: null });
-																	}}
-																>Страх. виплату</RoundedButton>
-															)}
+															{personInsuranceEvaluation === undefined &&
+																personVehicle !== undefined && (
+																	<RoundedButton
+																		variant="blue"
+																		onClick={() => {
+																			setPopup({
+																				type: "INSURANCE_EVALUATION",
+																				accidentId: accumulator.id,
+																				vehicleId: personVehicle.id,
+																				conclusion: "",
+																				error: null,
+																			});
+																		}}
+																	>
+																		Страх. оцінку
+																	</RoundedButton>
+																)}
+															{personInsuranceEvaluation !== undefined &&
+																personInsurancePayment === undefined && (
+																	<RoundedButton
+																		variant="blue"
+																		onClick={() => {
+																			setPopup({
+																				type: "INSURANCE_PAYMENT",
+																				insuranceEvaluationId:
+																					personInsuranceEvaluation.id,
+																				personId: p.person.id,
+																				payment: "",
+																				error: null,
+																			});
+																		}}
+																	>
+																		Страх. виплату
+																	</RoundedButton>
+																)}
 														</div>
 													)}
 													{userRole === ApplicationRole.MEDIC && (
 														<RoundedButton
 															variant="blue"
 															onClick={() => {
-																setPopup({ type: 'MEDICAL_REPORT', accidentId: accumulator.id, personId: p.person.id, report: '', error: createMedicalReport.isError ? "Виникла помилка" : null });
+																setPopup({
+																	type: "MEDICAL_REPORT",
+																	accidentId: accumulator.id,
+																	personId: p.person.id,
+																	report: "",
+																	error: createMedicalReport.isError
+																		? "Виникла помилка"
+																		: null,
+																});
 															}}
-														>Мед. вирок</RoundedButton>
+														>
+															Мед. вирок
+														</RoundedButton>
 													)}
 												</div>
 											</div>
@@ -675,54 +749,72 @@ export function AccidentsListPage(): ReactElement {
 												personAdministrativeDecision ||
 												(personViolations?.length ?? 0) > 0 ||
 												(personMedicalReports?.length ?? 0) > 0) && (
-												<RoundedButton className="mt-2" onClick={() => { setExpandedPersons(togglePairSet(expandedPersons, accumulator.id, p.person.id)); }}>
-													{checkIfPairExists(accumulator.id, p.person.id) ? "Згорнути" : "Розгорнути"}
+												<RoundedButton
+													className="mt-2"
+													onClick={() => {
+														setExpandedPersons(
+															togglePairSet(
+																expandedPersons,
+																accumulator.id,
+																p.person.id
+															)
+														);
+													}}
+												>
+													{checkIfPairExists(accumulator.id, p.person.id)
+														? "Згорнути"
+														: "Розгорнути"}
 												</RoundedButton>
 											)}
 
 											{checkIfPairExists(accumulator.id, p.person.id) && (
 												<div className="mt-2 border-l-4 border-gray-300 pl-4 pt-2 pb-2 bg-gray-100 rounded space-y-2">
-													{personVehicle &&
+													{personVehicle && (
 														<div>
 															<strong>ТЗ: </strong>
-															{personVehicle.make} {personVehicle.model} ({personVehicle.licensePlate})
-															{personInsuranceEvaluation &&
+															{personVehicle.make} {personVehicle.model} (
+															{personVehicle.licensePlate})
+															{personInsuranceEvaluation && (
 																<div className="mt-1">
 																	<strong>Страховий висновок: </strong>
 																	{personInsuranceEvaluation.conclusion}
 																</div>
-															}
+															)}
 														</div>
-													}
-													{personInsurancePayment &&
+													)}
+													{personInsurancePayment && (
 														<div>
 															<strong>Страхова виплата: </strong>
 															{personInsurancePayment.payment / 100 + " UAH"}
 														</div>
-													}
-													{personAdministrativeDecision &&
+													)}
+													{personAdministrativeDecision && (
 														<div>
 															<strong>Адміністративне рішення: </strong>
 															{personAdministrativeDecision.decision}
 														</div>
-													}
-													{personViolations && personViolations.length > 0 &&
+													)}
+													{personViolations && personViolations.length > 0 && (
 														<div>
 															<strong>Порушення: </strong>
-															<ul className="list-disc list-inside">{personViolations.map((vl) =>
-																<li key={vl.id}>{vl.violation}</li>)}
-															</ul>
-														</div>
-													}
-													{personMedicalReports && personMedicalReports.length > 0 &&
-														<div>
-															<strong>Медичні вироки: </strong>
 															<ul className="list-disc list-inside">
-																{personMedicalReports.map((mr) =>
-																	<li key={mr.id}>{mr.report}</li>)}
+																{personViolations.map((vl) => (
+																	<li key={vl.id}>{vl.violation}</li>
+																))}
 															</ul>
 														</div>
-													}
+													)}
+													{personMedicalReports &&
+														personMedicalReports.length > 0 && (
+															<div>
+																<strong>Медичні вироки: </strong>
+																<ul className="list-disc list-inside">
+																	{personMedicalReports.map((mr) => (
+																		<li key={mr.id}>{mr.report}</li>
+																	))}
+																</ul>
+															</div>
+														)}
 												</div>
 											)}
 										</td>
