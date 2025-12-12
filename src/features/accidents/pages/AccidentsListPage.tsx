@@ -609,15 +609,26 @@ export function AccidentsListPage(): ReactElement {
 											<div className="flex justify-between">
 												<div className="space-y-1">
 													<div>
-														<strong>ПІБ: </strong>
-														<Link
-															className="text-blue-700 hover:underline"
-															// @ts-expect-error Always works
-															to={`/persons/${p.person.id}`}
-														>
-															{p.person.surname} {p.person.name}{" "}
-															{p.person.patronymic}
-														</Link>
+														{userRole === ApplicationRole.POLICE ? (
+															<div>
+																<strong>ПІБ: </strong>
+																<Link
+																	className="text-blue-700 hover:underline"
+																	// @ts-expect-error Always works
+																	to={`/persons/${p.person.id}`}
+																>
+																	{p.person.surname} {p.person.name}{" "}
+																	{p.person.patronymic}
+																</Link>
+															</div>
+														) : (
+															<div>
+																<strong>ПІБ: </strong>
+																{p.person.surname} {p.person.name} {p.person.patronymic}
+															</div>
+														)
+														}
+
 													</div>
 													{p.person.driverLicense && (
 														<div>
