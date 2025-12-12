@@ -7,9 +7,11 @@ import { RoundedButton } from "../../../components/ui/RoundedButton.tsx";
 import { toast } from "react-hot-toast";
 import { AccidentRole } from "../../many-to-many/types.ts";
 import { Outlet, useNavigate } from "@tanstack/react-router";
-import type { PassportDetails, Person } from "../../persons/types.ts";
-import { usePerson } from "../../persons/api.ts";
+import type { DriverLicense, PassportDetails, Person } from "../../persons/types.ts";
+import { usePerson, usePersonDriverLicense } from "../../persons/api.ts";
 import { useVehicles } from "../../vehicles/api.ts";
+import { Popup } from "../../../components/ui/Popup.tsx";
+import { PopupField } from "../../../components/ui/PopupField.tsx";
 
 const accidentSchema = z.object({
 	date: z.string().min(1, "Вкажіть дату"),
@@ -57,6 +59,7 @@ function FetchedPersonSelector({
 												 culpritIndex,
 												 setCulpritIndex,
 												 index,
+												 hasLicense, name, surname, patronymic, passportDetails, driverLicense
 											 }: {
 												 personId: string;
 												 selectedVehicles: Array<number | null>;
@@ -64,53 +67,157 @@ function FetchedPersonSelector({
 												 culpritIndex: number | null;
 												 setCulpritIndex: React.Dispatch<React.SetStateAction<number | null>>;
 												 index: number;
+												 hasLicense: boolean;
+												 name: string;
+												 surname: string;
+												 patronymic: string;
+												 passportDetails: PassportDetails;
+												 driverLicense: DriverLicense | undefined;
 											 }): ReactElement {
 	const getVehicles = useVehicles(personId);
+	const setPersonDriverLicense = usePersonDriverLicense();
 	const navigate = useNavigate();
+	const [error, setError] = useState<string | null>(null);
+	const [open, setOpen] = useState<boolean>(false);
+	const [form, setForm] = useState({ id: "", categories: "" });
+	const [driverLicenseState, setDriverLicenseState] = useState<DriverLicense | null>(driverLicense ?? null);
+	const [hasLicenseState, setHasLicenseState] = useState<boolean>(hasLicense);
+
+	const driverLicenseSchema = z.object({
+		id: z.string().regex(new RegExp(/^[A-Z]{2}\d{4}[A-Z]{2}$/), "ID посвідчення мусить мати вигляд АА1234АА"),
+		categories: z.array(z.string().regex(/^[A-Z]$/, "Категорії мають бути визначені однією великою літерою")).min(1, "Введіть як мінімум одну категорію"),
+	})
+
+	const submit = (event_: React.FormEvent): void => {
+		event_.preventDefault();
+		const nextForm = {
+			...form,
+			categories: form.categories.split(",").map(c => c.trim()).filter(Boolean),
+		}
+		const parsed = driverLicenseSchema.safeParse(nextForm);
+		if (!parsed.success) {
+			// @ts-expect-error Always defined
+			setError(parsed.error.issues[0].message);
+			return;
+		}
+		setError("");
+		const payload = {
+			driverLicense: { id: nextForm.id, categories: nextForm.categories },
+			personId: personId,
+		}
+		setPersonDriverLicense.mutate(payload, {
+			onSuccess: () => { setOpen(false); setDriverLicenseState(payload.driverLicense); setHasLicenseState(true); },
+		});
+	};
+
+	const update = (k: "id" | "categories", v: string): void =>
+	{ setForm({ ...form, [k]: v }); };
 	
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="flex flex-row gap-2 w-full">
-				<select
-					className="border p-2 rounded w-full"
-					value={selectedVehicles[index] ?? ""}
-					onChange={(event_) => {
-						const selected = event_.target.value;
-						const isPedestrian = selected === "";
-						if (isPedestrian && culpritIndex === index) setCulpritIndex(null);
-						setSelectedVehicles(previous =>
-							previous.map((v, index_) => index_ === index ? (isPedestrian ? null : Number(selected)) : v)
-						);
-					}}
-				>
-					<option value="">Пішохід</option>
-					{getVehicles.data?.map(v => (
-						<option key={v.id} value={v.id}>
-							{v.make} {v.model} {v.licensePlate}
-						</option>
-					))}
-				</select>
-				<RoundedButton
-					type="button"
-					variant="green"
-					onClick={async () => {
-						await navigate({ to: "/accidents/new/vehicle", state: { ownerId: Number(personId) } });
-					}}
-				>
-					+
-				</RoundedButton>
-			</div>
-			{selectedVehicles[index] !== null && (
-				<div className="flex items-center gap-2">
-					<input
-						checked={culpritIndex === index}
-						name="culprit"
-						type="radio"
-						onChange={() => { setCulpritIndex(index); }}
-					/>
-					<div>Винуватець</div>
+			<div className="p-2 bg-gray-100 rounded">
+				<div>
+					ПІБ: {surname} {name}{" "}
+					{patronymic}
 				</div>
-			)}
+				<div>
+					Паспорт: {passportDetails.series}{" "}
+					{passportDetails.id}
+				</div>
+				{driverLicenseState && (
+					<div>
+						Посвідчення водія: {driverLicenseState.id} (
+						{driverLicenseState.categories.join(", ")})
+					</div>
+				)}
+			</div>
+			<div className="flex flex-col gap-2">
+				<Popup
+					error={error}
+					open={open}
+					// @ts-expect-error Always inside a form
+					onSubmit={submit}
+					onCancel={() => {
+						setOpen(false);
+					}}
+				>
+					<h1 className="text-gray-800 text-base font-semibold">
+						У персони немає посвідчення водія.<br/>Додайте його:
+					</h1>
+
+					<PopupField label="ID">
+						<input
+							className="border p-2 rounded w-full"
+							value={form.id}
+							onChange={(event_) => {
+								update("id", event_.target.value);
+							}}
+						/>
+					</PopupField>
+
+					<PopupField label="Категорії">
+						<input
+							className="border p-2 rounded w-full"
+							value={form.categories}
+							onChange={(event_) => {
+								update("categories", event_.target.value);
+							}}
+						/>
+					</PopupField>
+				</Popup>
+				<div className="flex flex-row gap-2 w-full">
+					<select
+						className="border p-2 rounded w-full"
+						value={selectedVehicles[index] ?? ""}
+						onChange={(event_) => {
+							const selected = event_.target.value;
+							const isPedestrian = selected === "";
+							if (isPedestrian && culpritIndex === index) setCulpritIndex(null);
+							setSelectedVehicles((previous) =>
+								previous.map((v, index_) =>
+									index_ === index ? (isPedestrian ? null : Number(selected)) : v
+								)
+							);
+						}}
+					>
+						<option value="">Пішохід</option>
+						{getVehicles.data?.map((v) => (
+							<option key={v.id} value={v.id}>
+								{v.make} {v.model} {v.licensePlate}
+							</option>
+						))}
+					</select>
+					<RoundedButton
+						type="button"
+						variant="green"
+						onClick={async () => {
+							if (!hasLicenseState) {
+								setOpen(true);
+								return;
+							}
+							await navigate({
+								to: "/accidents/new/vehicle",
+								state: { ownerId: Number(personId) },
+							});
+						}}
+					>
+						+
+					</RoundedButton>
+				</div>
+				{selectedVehicles[index] !== null && (
+					<div className="flex items-center gap-2">
+						<input
+							checked={culpritIndex === index}
+							name="culprit"
+							type="radio"
+							onChange={() => {
+								setCulpritIndex(index);
+							}}
+						/>
+						<div>Винуватець</div>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
@@ -506,30 +613,20 @@ export function AccidentCreatePage(): ReactElement {
 										</>
 									) : (
 										<div className="flex flex-col gap-2">
-											<div className="p-2 bg-gray-100 rounded">
-												<div>
-													ПІБ: {entry.data.surname} {entry.data.name}{" "}
-													{entry.data.patronymic}
-												</div>
-												<div>
-													Паспорт: {entry.data.passportDetails.series}{" "}
-													{entry.data.passportDetails.id}
-												</div>
-												{entry.data.driverLicense && (
-													<div>
-														Посвідчення водія: {entry.data.driverLicense.id} (
-														{entry.data.driverLicense.categories.join(", ")})
-													</div>
-												)}
-											</div>
 											<FetchedPersonSelector
 												key={entry.data.id}
 												culpritIndex={culpritIndex}
+												driverLicense={entry.data.driverLicense}
+												hasLicense={Boolean(entry.data.driverLicense)}
 												index={index}
+												name={entry.data.name}
+												passportDetails={entry.data.passportDetails}
+												patronymic={entry.data.patronymic}
 												personId={String(entry.data.id)}
 												selectedVehicles={selectedVehicles}
 												setCulpritIndex={setCulpritIndex}
 												setSelectedVehicles={setSelectedVehicles}
+												surname={entry.data.surname}
 											/>
 										</div>
 									)}

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';
-import type { PassportDetails, Person } from "./types";
+import type { DriverLicense, PassportDetails, Person } from "./types";
 import type { AccidentDataDto } from "../accidents/types.ts";
 
 const getPersonByPassportDetails = async (passportDetails: PassportDetails): Promise<Person> => {
@@ -24,11 +24,24 @@ const getPersonData = async (personId: string): Promise<AccidentDataDto> => {
 	return response.data as AccidentDataDto;
 }
 
+const setPersonDriverLicense = async ({	driverLicense, personId }:
+																			{	driverLicense: DriverLicense,	personId: string}): Promise<void> => {
+	await apiClient.patch(`/persons/license/${personId}`, driverLicense);
+};
+
 export const usePerson = (): UseMutationResult<Person, Error, PassportDetails> => {
 	return useMutation<Person, Error, PassportDetails>({
 		mutationFn: (passportDetails: PassportDetails) => getPersonByPassportDetails(passportDetails),
 	});
 };
+
+// export const usePerson = (passportDetails: PassportDetails): UseQueryResult<Person, Error> => {
+// 	return useQuery({
+// 		queryKey: ["person", passportDetails],
+// 		queryFn: () => getPersonByPassportDetails(passportDetails),
+// 		enabled: Boolean(passportDetails),
+// 	});
+// };
 
 export const useCreatePerson = (): UseMutationResult<void, Error, Partial<Person>, unknown> => {
 	const navigate = useNavigate();
@@ -56,6 +69,17 @@ export const usePersonEmail = (): UseMutationResult<void, Error, PassportDetails
 
 export const usePersonData = (personId: string): UseQueryResult<AccidentDataDto, Error> =>
 	useQuery<AccidentDataDto>({
-		queryKey: ['person', personId],
+		queryKey: ['person-data', personId],
 		queryFn: () => getPersonData(personId),
 	});
+
+export const usePersonDriverLicense = (): UseMutationResult<void, Error, { driverLicense: DriverLicense, personId: string }, unknown> => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: setPersonDriverLicense,
+		onSuccess: async (_, { personId }) => {
+			await queryClient.invalidateQueries({ queryKey: ["person", personId] });
+		},
+	});
+};
